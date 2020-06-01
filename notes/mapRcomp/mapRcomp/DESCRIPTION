@@ -1,0 +1,17 @@
+Package: mapRcomp
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: Antonio Paez, Fernando Lopez, Manuel Ruiz
+Maintainer: The package maintainer <paezha@gmail.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: ggplot2,
+    gtools
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
