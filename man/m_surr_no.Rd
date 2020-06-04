@@ -2,22 +2,34 @@
 % Please edit documentation in R/m_surr_no.R
 \name{m_surr_no}
 \alias{m_surr_no}
-\title{A funcion for creating m-surroudings}
+\title{A funcion for creating m-surroudings MEJORADA}
 \usage{
-m_surr_no(coords, m, s)
+m_surr_no(x, m, s)
+}
+\arguments{
+\item{coords}{son coordenadas}
 }
 \description{
 This function obtains the m-surroundings by selecting the m-1 nearest neighbors of each observation, allowing for a degree of overlap of s.
 }
 \examples{
-# Load dataset
-data("Newark")
 
-# Use false origin UTM coordinates
-coords <- cbind(Newark$X_UTM2,Newark$Y_UTM2)
+# Obtain m-surroundings of size 3 (m=5), with degree of overlap of two (s=2)
+N <- 100
+m = 5
+s = 2
+cx <- runif(N)
+cy <- runif(N)
+x <- cbind(cx,cy)
+mh <- m_surr_no(x, m, s)
+W <- matrix(0,ncol = N,nrow = N)
+for (i in 1:dim(mh)[1]){
+ W[mh[i,1],mh[i,2:4]]<-1
+}
+W <- mat2listw(W)
+plot(W,x)
 
-# Obtain m-surroundings of size 3 (m=3), with degree of overlap of two (s=2)
-mh32 <- m_surr_no(coords,3,2)
+
 
 }
 \keyword{m_surround}

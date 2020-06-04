@@ -4,7 +4,8 @@
 \name{Newark}
 \alias{Newark}
 \title{Ethnicity, age, marital status of residents in Newark according to 1880 US Census.}
-\format{A data frame with 21520 rows and 10 variables:
+\format{
+A data frame with 21520 rows and 10 variables:
 \describe{
   \item{ID}{Unique identifier for observation}
   \item{X}{Geocode: Longitude of the observation}
@@ -18,7 +19,8 @@
   \item{mar}{Indicator variable for marital status = married}
   \item{usborn}{Respondent was born in the USA}
   ...
-}}
+}
+}
 \source{
 \url{https://s4.ad.brown.edu/Projects/UTP/index.htm}
 }

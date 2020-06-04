@@ -7,10 +7,30 @@
 q_symb(Y, mh, symb)
 }
 \arguments{
-\item{Y, }{mh, symb}
+\item{Y}{vector de observaciones Factor o numérico?}
+
+\item{mh}{m-historias}
+
+\item{symb}{matrix con simbolos}
+}
+\value{
+decir que cosas son las que devuelve
+  \tabular{ll}{
+    \code{pc} \tab Qp for combinations-totals symbols \cr
+    \code{pc_pval} \tab  p-value for Qp \cr
+    \code{qc} \tab Qc for combinations-totals symbols \cr
+    \code{qc_pval} \tab  p-value for Qc \cr
+    \code{p_symb} \tab  Matriz que lista los símbolos sin compactar \cr
+    \code{efp_symb} \tab  Frecuancia absoluta de cada símbolo (no compactados)\cr
+    \code{c_symb} \tab  Matriz que lista los símbolos COMPACTOS \cr
+    \code{efc_symb} \tab  Frecuancia absoluta de cada símbolo (Compactado)\cr
+    }
 }
 \description{
 This function calculates Q, a measure of spatial association based on symbolic entropy.
+}
+\details{
+Aquí Antonio escribe una linda historia
 }
 \examples{
 # Load dataset
@@ -32,6 +52,26 @@ results.35 <- q_symb(Y1,mh51,symb35)
 results.35$qc #Qc for combinations-totals symbols
 results.35$qc_pval #p-value for Qc
 results.35$c_plot #plot bar chart of symbols with intervals of confidence
+}
+\seealso{
+\code{\link{dgp_spq}}, \code{\link{m_surr_no}}
+}
+\author{
+\tabular{ll}{
+  Fernando López  \tab \email{fernando.lopez@upct.es} \cr
+  Román Mínguez  \tab \email{roman.minguez@uclm.es} \cr
+  Antonio  \tab \email{paez@gmail.com} \cr
+  Manolo  \tab \email{manuel.ruiz@upct.es} \cr
+  }
+  @references
+  \itemize{
+    \item Ruiz, M., López, F., and Páez, A. (2010).
+    Testing for spatial association of qualitative data using symbolic dynamics.
+      \emph{Journal of Geographical Systems}, 12(3), 281-309.
+    \item Ruiz, M., López, F., and Páez, A. (2010).
+    Testing for spatial association of qualitative data using symbolic dynamics.
+      \emph{Journal of Geographical Systems}, 12(3), 281-309.0.
+  }
 }
 \keyword{association,}
 \keyword{entropy,}

@@ -1,8 +1,41 @@
-#' A funcion to calculate Q
+#' @title A funcion to calculate Q
 #'
-#' This function calculates Q, a measure of spatial association based on symbolic entropy.
-#' @param Y, mh, symb
+#' @description This function calculates Q, a measure of spatial association based on symbolic entropy.
+#' @param Y vector de observaciones Factor o numérico?
+#' @param mh m-historias
+#' @param symb matrix con simbolos
+#' @usage q_symb(Y, mh, symb)
 #' @keywords spatial association, qualitative variable, symbolic entropy, symbols
+#' @details Aquí Antonio escribe una linda historia
+#' @return decir que cosas son las que devuelve
+#'   \tabular{ll}{
+#'     \code{pc} \tab Qp for combinations-totals symbols \cr
+#'     \code{pc_pval} \tab  p-value for Qp \cr
+#'     \code{qc} \tab Qc for combinations-totals symbols \cr
+#'     \code{qc_pval} \tab  p-value for Qc \cr
+#'     \code{p_symb} \tab  Matriz que lista los símbolos sin compactar \cr
+#'     \code{efp_symb} \tab  Frecuancia absoluta de cada símbolo (no compactados)\cr
+#'     \code{c_symb} \tab  Matriz que lista los símbolos COMPACTOS \cr
+#'     \code{efc_symb} \tab  Frecuancia absoluta de cada símbolo (Compactado)\cr
+#'     }
+#' @author
+#'   \tabular{ll}{
+#'   Fernando López  \tab \email{fernando.lopez@@upct.es} \cr
+#'   Román Mínguez  \tab \email{roman.minguez@@uclm.es} \cr
+#'   Antonio  \tab \email{paez@@gmail.com} \cr
+#'   Manolo  \tab \email{manuel.ruiz@@upct.es} \cr
+#'   }
+#'   @references
+#'   \itemize{
+#'     \item Ruiz, M., López, F., and Páez, A. (2010).
+#'     Testing for spatial association of qualitative data using symbolic dynamics.
+#'       \emph{Journal of Geographical Systems}, 12(3), 281-309.
+#'     \item Ruiz, M., López, F., and Páez, A. (2010).
+#'     Testing for spatial association of qualitative data using symbolic dynamics.
+#'       \emph{Journal of Geographical Systems}, 12(3), 281-309.0.
+#'   }
+#' @seealso
+#' \code{\link{dgp_spq}}, \code{\link{m_surr_no}}
 #' @export
 #' @examples
 #' # Load dataset
@@ -26,6 +59,7 @@
 #' results.35$c_plot #plot bar chart of symbols with intervals of confidence
 
 q_symb <- function(Y, mh, symb) {
+  Y <- as.numeric(Y)
   mdim = dim(mh)
   n1 <- mdim[1]  #n1: number of symbolized locations
   m <- mdim[2]  #m: size of m-surrounding
@@ -93,33 +127,37 @@ q_symb <- function(Y, mh, symb) {
     efp_symb[i] <- sum(Sp==i)
   }
   #efp_symb <- tabulate(Sp)
-  # Standard error 95% for standard permutation symbols
-  sep_symb <- qnorm(0.975, lower.tail = TRUE) * sqrt((sfp_0/n1 * (1 -
-                                                                    sfp_0/n1))/n1)
-  # Determine if empirical frequency is outside of intervals of
-  # confidence
-  sigp_symb <- (-1 * (efp_symb/n1 < (sfp_0/n1 - qnorm(0.975, lower.tail = TRUE) *
-                                       sqrt((sfp_0/n1 * (1 - sfp_0/n1))/n1))) + 1 * (efp_symb/n1 > (sfp_0/n1 +
-                                                                                                      qnorm(0.975, lower.tail = TRUE) * sqrt((sfp_0/n1 * (1 - sfp_0/n1))/n1))))
-  sigp_symb <- factor(sigp_symb)
-  if (any(sigp_symb==-1)){
-    levels(sigp_symb)[levels(sigp_symb)=="-1"] <- "-"
-  }
-  if (any(sigp_symb==0)){
-    levels(sigp_symb)[levels(sigp_symb)=="0"] <- "NS"
-  }
-  if (any(sigp_symb==1)){
-    levels(sigp_symb)[levels(sigp_symb)=="1"] <- "+"
-  }
-  # Dataframe for plotting
-  PSymb.df <- data.frame(PSymb, efp_symb/n1, sfp_0/n1, sep_symb, sigp_symb)
-  # Create ggplot2 plot object
-  p_symb_plot <- ggplot2::ggplot(PSymb.df) + ggplot2::geom_bar(ggplot2::aes(x = PSymb,
-                                                                            y = efp_symb.n1, color = sigp_symb), stat = "identity") + ggplot2::geom_errorbar(ggplot2::aes(x = PSymb,
-                                                                                                                                                                   y = sfp_0.n1, ymin = sfp_0.n1 - sep_symb, ymax = sfp_0.n1 + sep_symb,
-                                                                                                                                                                   color = sigp_symb)) + ggplot2::labs(x = "Symbol (Permutations)",
-                                                                                                                                                                                                       y = "Frequency", color = "Significance") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
-                                                                                                                                                                                                                                                                                                     hjust = 0, size = 6), legend.position = "top")
+
+  ############################################################################
+  # Plot 1
+  ############################################################################
+  # # Standard error 95% for standard permutation symbols
+  # sep_symb <- qnorm(0.975, lower.tail = TRUE) * sqrt((sfp_0/n1 * (1 -
+  #                                                                   sfp_0/n1))/n1)
+  # # Determine if empirical frequency is outside of intervals of
+  # # confidence
+  # sigp_symb <- (-1 * (efp_symb/n1 < (sfp_0/n1 - qnorm(0.975, lower.tail = TRUE) *
+  #                                      sqrt((sfp_0/n1 * (1 - sfp_0/n1))/n1))) + 1 * (efp_symb/n1 > (sfp_0/n1 +
+  #                                      qnorm(0.975, lower.tail = TRUE) * sqrt((sfp_0/n1 * (1 - sfp_0/n1))/n1))))
+  # sigp_symb <- factor(sigp_symb)
+  # if (any(sigp_symb==-1)){
+  #   levels(sigp_symb)[levels(sigp_symb)=="-1"] <- "-"
+  # }
+  # if (any(sigp_symb==0)){
+  #   levels(sigp_symb)[levels(sigp_symb)=="0"] <- "NS"
+  # }
+  # if (any(sigp_symb==1)){
+  #   levels(sigp_symb)[levels(sigp_symb)=="1"] <- "+"
+  # }
+  # # Dataframe for plotting
+  # PSymb.df <- data.frame(PSymb, efp_symb/n1, sfp_0/n1, sep_symb, sigp_symb)
+  # # Create ggplot2 plot object
+  # p_symb_plot <- ggplot2::ggplot(PSymb.df) + ggplot2::geom_bar(ggplot2::aes(x = PSymb,
+  # y = efp_symb.n1, color = sigp_symb), stat = "identity") + ggplot2::geom_errorbar(ggplot2::aes(x = PSymb,
+  # y = sfp_0.n1, ymin = sfp_0.n1 - sep_symb, ymax = sfp_0.n1 + sep_symb,
+  # color = sigp_symb)) + ggplot2::labs(x = "Symbol (Permutations)",
+  # y = "Frequency", color = "Significance") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
+  # hjust = 0, size = 6), legend.position = "top")
 
   # Evaluate the probabilities of each symbol under the null, combination
   # symbols.
@@ -151,34 +189,37 @@ q_symb <- function(Y, mh, symb) {
   for (i in 1:nc_symb){
     efc_symb[i] <- sum(Sc==i)
   }
+
   #efc_symb <- tabulate(Sc)
-  # Standard error 95% for standard permutation symbols
-  sec_symb <- qnorm(0.975, lower.tail = TRUE) * sqrt((sfc_0/n1 * (1 -
-                                                                    sfc_0/n1))/n1)
-  # Determine if empirical frequency is outside of intervals of
-  # confidence
-  sigc_symb <- (-1 * (efc_symb/n1 < (sfc_0/n1 - qnorm(0.975, lower.tail = TRUE) *
-                                       sqrt((sfc_0/n1 * (1 - sfc_0/n1))/n1))) + 1 * (efc_symb/n1 > (sfc_0/n1 +
-                                                                                                      qnorm(0.975, lower.tail = TRUE) * sqrt((sfc_0/n1 * (1 - sfc_0/n1))/n1))))
-  sigc_symb <- factor(sigc_symb)
-  if (any(sigc_symb==-1)){
-    levels(sigc_symb)[levels(sigc_symb)=="-1"] <- "-"
-  }
-  if (any(sigc_symb==0)){
-    levels(sigc_symb)[levels(sigc_symb)=="0"] <- "NS"
-  }
-  if (any(sigc_symb==1)){
-    levels(sigc_symb)[levels(sigc_symb)=="1"] <- "+"
-  }
-  # Dataframe for plotting
-  CSymb.df <- data.frame(CSymb, efc_symb/n1, sfc_0/n1, sec_symb, sigc_symb)
-  # Create ggplot2 plot object
-  c_symb_plot <- ggplot2::ggplot(CSymb.df) + ggplot2::geom_bar(ggplot2::aes(x = CSymb,
-                                                                            y = efc_symb.n1, color = sigc_symb), stat = "identity") + ggplot2::geom_errorbar(ggplot2::aes(x = CSymb,
-                                                                                                                                                                   y = sfc_0.n1, ymin = sfc_0.n1 - sec_symb, ymax = sfc_0.n1 + sec_symb,
-                                                                                                                                                                   color = sigc_symb)) + ggplot2::labs(x = "Symbol (Combinations - Totals)",
-                                                                                                                                                                                                       y = "Frequency", color = "Significance") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
-                                                                                                                                                                                                                                                                                                     hjust = 0, size = 6), legend.position = "top")
+
+  ############################################################################
+  # # Standard error 95% for standard permutation symbols
+  # sec_symb <- qnorm(0.975, lower.tail = TRUE) * sqrt((sfc_0/n1 * (1 -
+  #                                                                   sfc_0/n1))/n1)
+  # # Determine if empirical frequency is outside of intervals of
+  # # confidence
+  # sigc_symb <- (-1 * (efc_symb/n1 < (sfc_0/n1 - qnorm(0.975, lower.tail = TRUE) *
+  #                                      sqrt((sfc_0/n1 * (1 - sfc_0/n1))/n1))) + 1 * (efc_symb/n1 > (sfc_0/n1 +
+  #                                                                                                     qnorm(0.975, lower.tail = TRUE) * sqrt((sfc_0/n1 * (1 - sfc_0/n1))/n1))))
+  # sigc_symb <- factor(sigc_symb)
+  # if (any(sigc_symb==-1)){
+  #   levels(sigc_symb)[levels(sigc_symb)=="-1"] <- "-"
+  # }
+  # if (any(sigc_symb==0)){
+  #   levels(sigc_symb)[levels(sigc_symb)=="0"] <- "NS"
+  # }
+  # if (any(sigc_symb==1)){
+  #   levels(sigc_symb)[levels(sigc_symb)=="1"] <- "+"
+  # }
+  # # Dataframe for plotting
+  # CSymb.df <- data.frame(CSymb, efc_symb/n1, sfc_0/n1, sec_symb, sigc_symb)
+  # # Create ggplot2 plot object
+  # c_symb_plot <- ggplot2::ggplot(CSymb.df) + ggplot2::geom_bar(ggplot2::aes(x = CSymb,
+  #                                                                           y = efc_symb.n1, color = sigc_symb), stat = "identity") + ggplot2::geom_errorbar(ggplot2::aes(x = CSymb,
+  #                                                                                                                                                                  y = sfc_0.n1, ymin = sfc_0.n1 - sec_symb, ymax = sfc_0.n1 + sec_symb,
+  #                                                                                                                                                                  color = sigc_symb)) + ggplot2::labs(x = "Symbol (Combinations - Totals)",
+  #                                                                                                                                                                                                      y = "Frequency", color = "Significance") + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90,
+  #                                                                                                                                                                                                                                                                                                    hjust = 0, size = 6), legend.position = "top")
 
   # Calculate statistics With standard permutations symbols
   lnp <- rep(0, np_symb)
@@ -201,17 +242,23 @@ q_symb <- function(Y, mh, symb) {
   }
   hmc = -sum((efc_symb/n1) * lnc)  #Empirical
   hmc_0 = sum((efc_symb/n1) * log(qc_symb))  #Expected under the null
-  qc = -2 * n1 * sum(hmc + hmc_0)  #Likelihood ratio statistic for combinations-totals symbols
+  qc = -2 * n1 * sum(hmc + hmc_0)  # Likelihood ratio statistic for combinations-totals symbols
   qc_pval = pchisq(qc, df = nc_symb-1, lower.tail = FALSE)
 
   # Return results
-  results <- list(qp, qp_pval, qc, qc_pval, p_symb_plot, c_symb_plot)
+  results <- list(qp, qp_pval, qc, qc_pval, symb$p_symb,efp_symb,symb$c_symb,efc_symb) #, p_symb_plot, c_symb_plot)
   names(results)[1] <- "qp"
   names(results)[2] <- "qp_pval"
   names(results)[3] <- "qc"
   names(results)[4] <- "qc_pval"
-  names(results)[5] <- "p_plot"
-  names(results)[6] <- "c_plot"
+  names(results)[5] <- "p_symb" # simbolos p (Sin compactar)
+  names(results)[6] <- "efp_symb" # Distribución empírica de símbolos
+  names(results)[7] <- "c_symb" # simbolos c (Compactos)
+  names(results)[8] <- "efc_symb" # Distribución empírica de símbolos
+
+
+  # names(results)[5] <- "p_plot"
+  # names(results)[6] <- "c_plot"
   return(results)  #To return a list of results a,b are two outputs
 
 }
