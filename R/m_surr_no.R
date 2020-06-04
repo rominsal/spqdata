@@ -7,7 +7,7 @@
 #' @examples
 #'
 #' # Obtain m-surroundings of size 3 (m=5), with degree of overlap of two (s=2)
-#' N <- 100
+#' N <- 1000
 #' m = 5
 #' s = 2
 #' cx <- runif(N)

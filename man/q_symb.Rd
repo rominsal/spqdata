@@ -4,10 +4,10 @@
 \alias{q_symb}
 \title{A funcion to calculate Q}
 \usage{
-q_symb(Y, mh, symb)
+q_symb(fx, mh, symb)
 }
 \arguments{
-\item{Y}{vector de observaciones Factor o numérico?}
+\item{fx}{vector de observaciones Factor o numérico?}
 
 \item{mh}{m-historias}
 

@@ -52,7 +52,12 @@
 #' Qboots <- q_boots(QY,x,m=3,s=1,nsim=99)
 
 
-q_boots <- function(Y, x, m, s, nsim=999) {
+q_boots <- function(fx, x, m, s, nsim=999) {
+
+  if (is.factor(fx)){
+    levels(fx) <- as.character(1:length(levels(fx)))
+    Y <- as.numeric(fx)
+  }
   if (length(Y) != dim(x)[1])
     stop("La longitud e Y no coincide con la dimensión de las coordenadas")
   if (s<1 || s >(m-1))

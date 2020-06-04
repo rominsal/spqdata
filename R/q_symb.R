@@ -1,10 +1,10 @@
 #' @title A funcion to calculate Q
 #'
 #' @description This function calculates Q, a measure of spatial association based on symbolic entropy.
-#' @param Y vector de observaciones Factor o numérico?
+#' @param fx vector de observaciones Factor o numérico?
 #' @param mh m-historias
 #' @param symb matrix con simbolos
-#' @usage q_symb(Y, mh, symb)
+#' @usage q_symb(fx, mh, symb)
 #' @keywords spatial association, qualitative variable, symbolic entropy, symbols
 #' @details Aquí Antonio escribe una linda historia
 #' @return decir que cosas son las que devuelve
@@ -58,8 +58,12 @@
 #' results.35$qc_pval #p-value for Qc
 #' results.35$c_plot #plot bar chart of symbols with intervals of confidence
 
-q_symb <- function(Y, mh, symb) {
-  Y <- as.numeric(Y)
+q_symb <- function(fx, mh, symb) {
+
+  if (is.factor(fx)){
+    levels(fx) <- as.character(1:length(levels(fx)))
+    Y <- as.numeric(fx)
+  }
   mdim = dim(mh)
   n1 <- mdim[1]  #n1: number of symbolized locations
   m <- mdim[2]  #m: size of m-surrounding

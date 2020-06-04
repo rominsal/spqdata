@@ -7,8 +7,6 @@
 q_boots(Y, x, m, s, nsim=999)
 }
 \arguments{
-\item{Y}{a factor of the same length as the coordinates x}
-
 \item{x}{coordenadas asociadas a la observación de Y}
 
 \item{m}{amplitud de las m-historias}
@@ -16,6 +14,8 @@ q_boots(Y, x, m, s, nsim=999)
 \item{s}{grado de solapamiento}
 
 \item{nsim}{number of permutations}
+
+\item{Y}{a factor of the same length as the coordinates x}
 }
 \value{
 decir que cosas son las que devuelve

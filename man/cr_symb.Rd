@@ -15,7 +15,7 @@ cr_symb(k, m)
 Devuelve una matrix listando los simbolos
  \tabular{ll}{
     \code{p_symb} \tab Matrix con los símbolos p\cr
-    \code{_symb} \tab  Matrix con los símbolos p \cr
+    \code{c_symb} \tab  Matrix con los símbolos c \cr
     }
 }
 \description{
@@ -27,8 +27,8 @@ Aquí Antonio escribe una linda historia
 \examples{
 # Obtain symbols for k=2 classes and m-surroundings of size 5
 symb25 <- cr_symb(2,5)
-symb25$p_symb #Permutations symbols
-symb25$c_symb #Combinations-totals symbols
+symb25$p_symb # Permutations symbols
+symb25$c_symb # Combinations-totals symbols
 }
 \seealso{
 \code{\link{q_symb}}, \code{\link{m_surr_no}}
