@@ -6,7 +6,7 @@
 #' @param m amplitud de las m-historias
 #' @param s grado de solapamiento
 #' @param nsim number of permutations
-#' @usage q_boots(Y, x, m, s, nsim=999)
+#' @usage q_boots(Y, x, m, nsim=999)
 #' @keywords spatial association, qualitative variable, symbolic entropy, symbols
 #' @details Aquí Antonio escribe una linda historia
 #' @return decir que cosas son las que devuelve
@@ -40,31 +40,51 @@
 #' \code{\link{dgp_spq}}, \code{\link{m_surr_no}},\code{\link{q_symb}}
 #' @export
 #' @examples
-#' #
+#' # Example 1
 #' N <- 1000
 #' cx <- runif(N)
 #' cy <- runif(N)
 #' x <- cbind(cx,cy)
 #' listw <- spdep::nb2listw(knn2nb(knearneigh(cbind(cx,cy), k=4)))
 #' p <- c(1/6,3/6,2/6)
-#' rho = 0.0
-#' QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
-#' Qboots <- q_boots(QY,x,m=3,s=1,nsim=99)
+#' rho = 0.5
+#' fx <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
+#' Qboots <- q_boots(fx=fx,x=x,m=3,nsim=199)
+#'
+#' # Example 2
+#'
+#' # Load dataset
+#' data("FastFood")
+#' # Define coordinates
+#' x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
+#' m <- 3
+#' QBoots <- q_boots(fx=FastFood.sf$Type,x=x,m=3,nsim=199)
 
 
-q_boots <- function(fx, x, m, s, nsim=999) {
+q_boots <- function(fx, x, m, nsim=999) {
 
   if (is.factor(fx)){
     levels(fx) <- as.character(1:length(levels(fx)))
     Y <- as.numeric(fx)
   }
+  if (is.character(fx)){
+    Y <- as.factor(fx)
+    levels(fx) <- as.character(1:length(levels(fx)))
+    Y <- as.numeric(fx)
+  }
+  if (is.numeric(fx)){
+    Y <- fx
+  }
+
   if (length(Y) != dim(x)[1])
     stop("La longitud e Y no coincide con la dimensión de las coordenadas")
   if (s<1 || s >(m-1))
     stop("mínimo grado de solapamiento es 1 y menor que la amplitud de la m-historia")
 
  num_clases <- length(table(Y))
- mh <- m_surr_no(x,m,s)
+ # mh <- m_surr_no(x,m,s)
+ N <- dim(x)[1]
+ mh <- cbind(1:N,spdep::knearneigh(x, k=(m-1))$nn)
  symb <- cr_symb(num_clases, m)
  Q0 <- q_symb(Y,mh,symb)
  Q0r <- c(Q0$qp,Q0$qc)
@@ -82,7 +102,7 @@ q_boots <- function(fx, x, m, s, nsim=999) {
  }
  pseudovalor_p=sum(Qpr[,1]>Q0r[1])/(nsim+1)
  pseudovalor_c=sum(Qpr[,2]>Q0r[2])/(nsim+1)
- results <- list(Q0r[1], pseudovalor_p, Q0r[2], pseudovalor_c,efp_symb,efc_symb,nsim) #, p_symb_plot, c_symb_plot)
- names(results) <- c("Q_p","p.value.p","Q_c","p.value.c","efp_symb","efc_symb","nsim")
+ results <- list(Q0r[1], pseudovalor_p, Q0r[2], pseudovalor_c,efp_symb,efc_symb,nsim,symb)
+ names(results) <- c("Q_p","p.value.p","Q_c","p.value.c","efp_symb","efc_symb","nsim","symb")
  return(results)
 }

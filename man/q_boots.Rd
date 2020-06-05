@@ -36,7 +36,7 @@ This function calculates Qboot, a measure of spatial association based on symbol
 Aquí Antonio escribe una linda historia
 }
 \examples{
-#
+# Example 1
 N <- 1000
 cx <- runif(N)
 cy <- runif(N)
@@ -45,7 +45,17 @@ listw <- spdep::nb2listw(knn2nb(knearneigh(cbind(cx,cy), k=4)))
 p <- c(1/6,3/6,2/6)
 rho = 0.0
 QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
-Qboots <- q_boots(QY,x,m=3,s=1,nsim=99)
+Qboots <- q_boots(fx=fx,x=x,m=3,s=1,nsim=99)
+
+# Example 2
+# Load dataset
+data("FastFood")
+# Define coordinates
+x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
+# Obtain m-surroundings of size 3 (m=3), with degree of overlap of one (s=1)
+m <- 3
+s <- 1
+QBoots <- q_boots(fx=FastFood.sf$Type,x=x,m=3,s=1,nsim=99)
 }
 \seealso{
 \code{\link{dgp_spq}}, \code{\link{m_surr_no}},\code{\link{q_symb}}

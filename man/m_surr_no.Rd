@@ -2,15 +2,28 @@
 % Please edit documentation in R/m_surr_no.R
 \name{m_surr_no}
 \alias{m_surr_no}
-\title{A funcion for creating m-surroudings MEJORADA}
+\title{A funcion for creating m-surroudings (mejoradas en tiempo de cómputo)}
 \usage{
-m_surr_no(x, m, s)
+m_surr_no(x = x, m = m, s = s, control = NULL)
 }
 \arguments{
-\item{coords}{son coordenadas}
+\item{x}{son coordenadas}
+
+\item{m}{amplitud m-historia}
+
+\item{s}{solapamiento máximo entre cualesquiera dos m-historias}
+
+\item{control}{Argumento opcional. Elimina aquellas m-historias cuyos elementos
+no esten contenidos dentro del conjunto de los k=control vecinos más próximos.}
+}
+\value{
+una matrix cuyas filas corresponden con las m-historias
 }
 \description{
 This function obtains the m-surroundings by selecting the m-1 nearest neighbors of each observation, allowing for a degree of overlap of s.
+}
+\details{
+Aquí Antonio escribe una linda historia
 }
 \examples{
 
@@ -21,15 +34,21 @@ s = 2
 cx <- runif(N)
 cy <- runif(N)
 x <- cbind(cx,cy)
-mh <- m_surr_no(x, m, s)
+mh <- m_surr_no(x = x, m = m, s = s)
 W <- matrix(0,ncol = N,nrow = N)
 for (i in 1:dim(mh)[1]){
- W[mh[i,1],mh[i,2:4]]<-1
+ W[mh[i,1],mh[i,2:m]] <- 1
 }
 W <- mat2listw(W)
 plot(W,x)
 
-
+mh <- m_surr_no(x = x, m = m, s = s, control = 20)
+W <- matrix(0,ncol = N,nrow = N)
+for (i in 1:dim(mh)[1]){
+ W[mh[i,1],mh[i,2:m]] <- 1
+}
+W <- mat2listw(W)
+plot(W,x)
 
 }
 \keyword{m_surround}
