@@ -26,15 +26,18 @@
 #' rho = 0.5
 #' QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
 
-dgp_spq <- function(x,p,listw = NULL, rho) {
+dgp_spq <- function(x = x, p = p, listw = listw, rho = rho) {
 
   if (sum(p)!=1)  stop("ojo, las probabilidades deben sumar 1")
 
-listw <- listw2mat(listw)
-N <- dim(listw)[1]
+if (class(listw)[1]=="knn"){listw <- spdep::nb2listw(knn2nb(listw))}
+if (class(listw)[1]=="listw"){listw <- spdep::listw2mat(listw)}
+if (class(listw)[1]=="nb"){listw <- spdep::nb2mat(listw, style = "W",zero.policy = TRUE)}
+
+n <- dim(listw)[1]
 cx <- x[,1]
 cy <- x[,2]
-y <- Matrix::solve(diag(N)-rho*listw)%*%rnorm(N,1)
+y <- Matrix::solve(diag(n)-rho*listw)%*%rnorm(n,1)
 Y <- cut(y,quantile(y,c(0,cumsum(p))),include.lowest=TRUE)
 levels(Y) <- as.character(1:length(p))
 return(Y)

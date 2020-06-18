@@ -4,18 +4,18 @@
 \alias{q_boots}
 \title{A funcion to calculate Q boots}
 \usage{
-q_boots(Y, x, m, s, nsim=999)
+q_boots(Y, x, m, nsim=999)
 }
 \arguments{
 \item{x}{coordenadas asociadas a la observación de Y}
 
 \item{m}{amplitud de las m-historias}
 
-\item{s}{grado de solapamiento}
-
 \item{nsim}{number of permutations}
 
 \item{Y}{a factor of the same length as the coordinates x}
+
+\item{s}{grado de solapamiento}
 }
 \value{
 decir que cosas son las que devuelve
@@ -43,19 +43,18 @@ cy <- runif(N)
 x <- cbind(cx,cy)
 listw <- spdep::nb2listw(knn2nb(knearneigh(cbind(cx,cy), k=4)))
 p <- c(1/6,3/6,2/6)
-rho = 0.0
-QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
-Qboots <- q_boots(fx=fx,x=x,m=3,s=1,nsim=99)
+rho = 0.5
+fx <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
+Qboots <- q_boots(fx=fx,x=x,m=3,nsim=199)
 
 # Example 2
+
 # Load dataset
 data("FastFood")
 # Define coordinates
 x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
-# Obtain m-surroundings of size 3 (m=3), with degree of overlap of one (s=1)
 m <- 3
-s <- 1
-QBoots <- q_boots(fx=FastFood.sf$Type,x=x,m=3,s=1,nsim=99)
+QBoots <- q_boots(fx=FastFood.sf$Type,x=x,m=3,nsim=199)
 }
 \seealso{
 \code{\link{dgp_spq}}, \code{\link{m_surr_no}},\code{\link{q_symb}}

@@ -42,12 +42,13 @@
 #' # Load dataset
 #' data("FastFood")
 #' # Define coordinates
-#' x <- cbind(FastFood.sf$Lat,FastFood.sf$Lon)
-#' symb33 <- cr_symb(3,3) # Obtain symbols for 3 classes
+#' x <- sf::st_coordinates(FastFood.sf)
+#' #x <- cbind(FastFood.sf$Lat,FastFood.sf$Lon)
 #' # Obtain m-surroundings of size 3 (m=3), with degree of overlap of one (s=1)
 #' m <- 3
 #' s <- 1
 #' mh31 <- m_surr_no(x,m,s)
+#' symb33 <- cr_symb(3,3)
 #'
 #' # Plot the m-sourronding
 #' N <- dim(x)[1]
@@ -62,11 +63,10 @@
 #'
 #'
 #' # Obtain the Q test
-#' W <- mat2listw(W)
+#' W <- spdep::mat2listw(W)
 #' results.31 <- q_symb_A(FastFood.sf$Type,mh31,symb33)
 
 q_symb_A <- function(fx, mh, symb) {
-
   if (is.factor(fx)){
     levels(fx) <- as.character(1:length(levels(fx)))
     Y <- as.numeric(fx)
@@ -250,7 +250,8 @@ q_symb_A <- function(fx, mh, symb) {
   hmp = -sum((efp_symb/n1) * lnp)  #Empirical
   hmp_0 = sum((efp_symb/n1) * log(qp_symb))  #Expected under the null
   qp = -2 * n1 * sum(hmp + hmp_0)  #Likelihood ratio statistic for permutations symbols
-  qp_pval = pchisq(qp, df = np_symb-1, lower.tail = FALSE)
+  qp_df <- np_symb - 1
+  qp_pval = pchisq(qp, df = qp_df, lower.tail = FALSE)
 
   # With combinations-totals symbols
   lnc <- rep(0, nc_symb)
@@ -262,20 +263,25 @@ q_symb_A <- function(fx, mh, symb) {
   hmc = -sum((efc_symb/n1) * lnc)  #Empirical
   hmc_0 = sum((efc_symb/n1) * log(qc_symb))  #Expected under the null
   qc = -2 * n1 * sum(hmc + hmc_0)  # Likelihood ratio statistic for combinations-totals symbols
-  qc_pval = pchisq(qc, df = nc_symb-1, lower.tail = FALSE)
+  qc_df = nc_symb - 1
+  qc_pval = pchisq(qc, df = qc_df, lower.tail = FALSE)
 
   # Return results
-  results <- list(qp, qp_pval, qc, qc_pval, symb$p_symb,efp_symb,symb$c_symb,efc_symb, p_symb_plot, c_symb_plot)
+  results <- list(qp, qp_df, qp_pval, qc, qc_df, qc_pval,
+                  symb$p_symb, efp_symb, symb$c_symb, efc_symb,
+                  p_symb_plot, c_symb_plot)
   names(results)[1] <- "qp"
-  names(results)[2] <- "qp_pval"
-  names(results)[3] <- "qc"
-  names(results)[4] <- "qc_pval"
-  names(results)[5] <- "p_symb" # simbolos p (Sin compactar)
-  names(results)[6] <- "efp_symb" # Distribución empírica de símbolos
-  names(results)[7] <- "c_symb" # simbolos c (Compactos)
-  names(results)[8] <- "efc_symb" # Distribución empírica de símbolos
-  names(results)[9] <- "p_symb_plot" # simbolos c (Compactos)
-  names(results)[10] <- "c_symb_plot" # Distribución empírica de símbolos
+  names(results)[2] <- "qp_df"
+  names(results)[3] <- "qp_pval"
+  names(results)[4] <- "qc"
+  names(results)[5] <- "qc_df"
+  names(results)[6] <- "qc_pval"
+  names(results)[7] <- "p_symb" # simbolos p (Sin compactar)
+  names(results)[8] <- "efp_symb" # Distribución empírica de símbolos
+  names(results)[9] <- "c_symb" # simbolos c (Compactos)
+  names(results)[10] <- "efc_symb" # Distribución empírica de símbolos
+  names(results)[11] <- "p_symb_plot" # simbolos c (Compactos)
+  names(results)[12] <- "c_symb_plot" # Distribución empírica de símbolos
 
   return(results)  #To return a list of results a,b are two outputs
 

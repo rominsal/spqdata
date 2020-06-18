@@ -1,17 +1,19 @@
-Package: mapRcomp
+Package: spqdata
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Testing for spatial structure of qualitative data in cross section
 Version: 0.1.0
-Author: Antonio Paez, Fernando Lopez, Manuel Ruiz
+Author: Antonio Paez, Fernando Lopez, Manuel Ruiz, Roman Minguez
 Maintainer: The package maintainer <paezha@gmail.com>
-Description: More about what it does (maybe more than one line)
+Description: Testing for spatial structure of qualitative data in cross section
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: ggplot2,
-    gtools
-Suggests: knitr,
+Imports:
+    ggplot2 (>= 3.3.0),
+    gtools (>= 3.8.2)
+Suggests: 
+    knitr,
     rmarkdown
 VignetteBuilder: knitr
 RoxygenNote: 7.1.0

@@ -33,16 +33,32 @@ This function calculates Q, a measure of spatial association based on symbolic e
 Aquí Antonio escribe una linda historia
 }
 \examples{
+
 # Load dataset
 data("FastFood")
 # Define coordinates
-x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
-# Obtain symbols for 3 classes
-symb33 <- cr_symb(3,3)
+x <- sf::st_coordinates(FastFood.sf)
+#x <- cbind(FastFood.sf$Lat,FastFood.sf$Lon)
 # Obtain m-surroundings of size 3 (m=3), with degree of overlap of one (s=1)
 m <- 3
 s <- 1
 mh31 <- m_surr_no(x,m,s)
+symb33 <- cr_symb(3,3)
+
+# Plot the m-sourronding
+N <- dim(x)[1]
+W <- matrix(0,ncol = N,nrow = N)
+for (i in 1:dim(mh31)[1]){W[mh31[i,1],mh31[i,2:m]] <- 1}
+g1 = igraph::graph.adjacency(W)
+mylist <- list()
+for (i in 1:dim(mh31)[1]){mylist[[i]] <- mh31[i,]}
+
+plot(g1,layout=layout.norm(x),edge.arrow.mode=0,edge.width=0,vertex.size=1,vertex.label="",vertex.color="red",vertex.label.font=0,mark.groups=mylist)
+
+
+
+# Obtain the Q test
+W <- spdep::mat2listw(W)
 results.31 <- q_symb_A(FastFood.sf$Type,mh31,symb33)
 }
 \seealso{

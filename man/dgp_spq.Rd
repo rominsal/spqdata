@@ -4,7 +4,7 @@
 \alias{dgp_spq}
 \title{A funcion to generate qualitative process with spatial structure}
 \usage{
-dgp_spq(x, p, listw = NULL, rho)
+dgp_spq(x = x, p = p, listw = listw, rho = rho)
 }
 \arguments{
 \item{x}{matrix of point coordinate}
