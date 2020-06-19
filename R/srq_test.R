@@ -1,21 +1,25 @@
+#'
 #' @title A function to calculate the spatial runs test
 #'
 #' @description This function calculates the runs test for spatial independence
-#' @param fx vector de observaciones Factor
-#' @param listw Una lista de los k vecinos más próximos o una matrix W de distancias. Para calcular el numero
-#' de rachas en cada m-entorno debe establecerse un orden de los vecinos de más próximo a más lejano.
+#' @param data an optional data frame or a sf object containing the variable to testing for.
+#' @param listw Una lista de vecinos (tipo knn o nb) o una matrix W que indique el orden de cada $m_i-entorno$
+#' (por ejemplo de inversa distancia). Para calcular el numero de rachas en cada m_i-entorno debe establecerse
+#' un orden, por ejemplo del vecino más próximo al más lejano.
+#' @param xf vector de observaciones de la clase factor.
 #' @param alternative a character string specifying the alternative hypothesis, must be one
 #' of "two.sided", "greater" or "less" (default).
-#' @param nsim Number of permutations to optain confidence intervals. Default value is NULL to dont get CI of number of runs and local.
-#' @usage SR_test(fx = fx, listw = listw, alternative="less")
+#' @param nsim Number of permutations to optain confidence intervals (CI).
+#' Default value is NULL to don`t get CI of number of runs and local.
+#' @usage srq_test(formula = NULL, data = NULL, na.action, xf = NULL,
+#' listw = listw, alternative = "less" , nsim = NULL, control = list())
 #' @keywords spatial association, qualitative variable, runs test
-#' @details La matrix listw puede ser de tres tipos:
-#' tabular{ll}{
-#'     \code{knn} \tab Criterio del vecino más próximo \cr
-#'     \code{nb} \tab Si ontenemos los vecionos  \cr
-#'     \code{matrix} \tab Una matriz basada en inversa de la distancia. Bebe contener ceros.\cr
+#' @details El objeto listw puede ser de tres tipos:
+#'   \tabular{ll}{
+#'     \code{knn} \tab Un objeto tipo knn obtenida utilizando el criterio del vecino más próximo, obtenida por ejemplo con knearneigh\cr
+#'     \code{nb} \tab Un objeto tipo nb obtenido con spdep::poly2nb.\cr
+#'     \code{matrix} \tab Una matriz indicando el orden de vecindad de cada m_i-entorno. Por ejemplo basada en inversa de la distancia con cierto punto de corte.\cr
 #'     }
-#' Aquí Antonio escribe una linda historia
 #' @return decir que devuelve
 #'   \tabular{ll}{
 #'     \code{SR} \tab numero total de rachas \cr
@@ -26,7 +30,6 @@
 #'     \code{SRGP} \tab vector con los nsim valores de SRGlobal por remuestreo permutacional\cr
 #'     \code{SRQlocal} \tab una matriz donde cada fila muestra el valor del estadístico... \cr
 #'     \code{SRLP} \tab matrix de orden n x nsim con los valores de SRLocal por remuestreo permutacional\cr
-#'     \code{xxx} \tab no se \cr
 #'     }
 #' @author
 #'   \tabular{ll}{
@@ -55,14 +58,15 @@
 #' p <- c(1/6,3/6,2/6)
 #' rho = 0.5
 #' QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
-#' srq <- srq_test(fx = QY, listw = listw)
+#' srq <- srq_test(xf = QY, listw = listw)
 #' srq$SRglobal
 #'
-#' # Fastfood example
+#' # Fastfood example. sf (points)
 #' data("FastFood")
 #' x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
 #' listw <- spdep::knearneigh(x, k=4)
-#' srq <- srq_test(fx=FastFood.sf$Type,listw)
+#' formula <- ~ Type
+#' srq <- srq_test(formula = formula, data = FastFood.sf, listw = listw)
 #' srq$SRglobal
 #'
 #' # With a sf object (poligons)
@@ -70,65 +74,71 @@
 #' fname <- system.file("shape/nc.shp", package="sf")
 #' nc <- st_read(fname)
 #' listw <- spdep::poly2nb(as(nc,"Spatial"), queen = FALSE)
-#' # Hace falta ordenar por DISTANCIA (menor a mayor) los elementos del objeto nb
-#' listw <- nb2nb_order(listw=listw, sf = nc)
 #' p <- c(1/6,3/6,2/6)
 #' rho = 0.5
 #' co <- sf::st_coordinates(st_centroid(nc))
 #' nc$Q <- dgp_spq(x = co, p = p, listw = listw, rho = rho)
 #' # plot(nc["Q"])
-#' srq <- srq_test(fx = nc$Q, listw = listw, nsim=399)
+#' formula <- ~ Q
+#' srq <- srq_test(formula = formula, data = nc, listw = listw, nsim=399)
 #' c(srq$SRglobal,srq$p.valueSRQ,srq$p.valueSRQB)
 #'
 #' # SRQ test based on inverse distance
 #' data("FastFood")
-#' x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
-#' dis <- distm(x, fun=distGeo)
-#' M1 <- matrix(x[,1],ncol = dim(x)[1],nrow=dim(x)[1])
-#' M2 <- matrix(x[,2],ncol = dim(x)[1],nrow=dim(x)[1])
-#' dis <- sqrt((M1-t(M1))^2+(M2-t(M2))^2)
-#' dis <- (dis < quantile(dis,.1))*1
+#' n = dim(FastFood.sf)[1]
+#' dis <- 1000000/matrix(as.numeric(st_distance(FastFood.sf,FastFood.sf)),ncol=n,nrow=n)
 #' diag(dis) <- 0
-#'
-#'
-#'
-
-
-#' co <- sf::st_coordinates(st_centroid(nc))
-#' listw <- knearneigh(co[,1:2], k=4)
-#' p <- c(1/6,3/6,2/6)
-#' rho = 0.5
-#' nc$Q <- dgp_spq(x = co, p = p, listw = listw, rho = rho)
-#' plot(nc["Q"])
-#'
+#' dis <- (dis < quantile(dis,.01))*dis
 #'
 
-srq_test <-  function(fx = fx, listw = listw, alternative = "less" , nsim = NULL){
+srq_test <-  function(formula = NULL, data = NULL, na.action, xf = NULL,
+                       listw = listw, alternative = "less" , nsim = NULL, control = list()){
 
+  # Solo admite matrices knn o nb
   if (class(listw) != "knn"){
     if (class(listw) != "nb"){
       stop ("tiene que ser de la clase knn o nb")
     }
-    }
+  }
 
-  # Calculo de tres valores previos
-  nv <- creation_nvar_SR(listw = listw)
+# Si se trata de un objeto sf y la matrix es tipo 'nb' hay que ordenar los m_i-entornos
+if (sum(class(data)=="sf")==1){
+if (class(listw)=='nb'){ # hay que ordenar los elementos
+  listw <- nb2nb_order(listw=listw, sf = data)
+}
+}
+
+# Selecciona los argumentos. Bien con (formula + data) o bien incluye la variable (xf)
+  if (!is.null(formula) && !is.null(data)) {
+    if (inherits(data, "Spatial")) data <- as(data, "sf")
+    mxf <- get_all_vars(formula, data)
+  } else if (!is.null(xf)) {
+    mxf <- xf
+    # if (!is.matrix(mxf)) mxf <- as.matrix(mxf, ncol = 1)
+    mxf <- as.data.frame(mxf)
+    for (i in 1:ncol(mxf)) {
+      if (!is.factor(mxf[,i])) mxf[,i] <- as.factor(mxf[,i])
+    }
+  } else stop("data wrong")
 
   # fx debe ser un factor. Lo transformo en var numerica para calcular
-  if (is.factor(fx)){
-    levels(fx) <- as.character(1:length(levels(fx)))
-    y <- as.numeric(fx)
+  if (is.factor(mxf[,1])){
+    levels(mxf[,1]) <- as.character(1:length(levels(mxf[,1])))
+    y <- as.numeric(mxf[,1])
   }
-  if (is.character(fx)){
-    y <- as.factor(fx)
-    levels(fx) <- as.character(1:length(levels(fx)))
-    y <- as.numeric(fx)
+  if (is.character(mxf[,1])){
+    y <- as.factor(mxf[,1])
+    levels(fx[,1]) <- as.character(1:length(levels(mxf[,1])))
+    y <- as.numeric(mxf[,1])
   }
-  if (is.numeric(fx)){
-    y <- fx
+  if (is.numeric(mxf[,1])){
+    stop("Only factors are admitted")
   }
 
-####
+#### EMPEZAMOS LAS CUENTTAS
+
+# Calculo valores previos para obtener media y varianza estadístico
+nv <- creation_nvar_SR(listw = listw)
 q <- max(y)
 n <- length(y)
 # Cont is a binary variable that takes on the value of 1 if data are

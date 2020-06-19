@@ -27,7 +27,7 @@
 #' qb79 <- quantile(nc$BIR79)
 #' nc$QBIR79 <- (nc$BIR79 > qb79[2]) + (nc$BIR79 > qb79[3]) +
 #' (nc$BIR79 >= qb79[4]) + 1
-#' nc$QBIR79 <- as.factor(nc$QSID79)
+#' nc$QBIR79 <- as.factor(nc$QBIR79)
 #' plot(nc["QBIR79"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"),
 #'      main = "BIR79 (Quartiles)")
 #' sid79 <- quantile(nc$SID79)
@@ -37,12 +37,21 @@
 #' plot(nc["QSID79"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"),
 #'      main = "SID79 (Quartiles)")
 #' f1 <- ~ QSID79 + QBIR79
-#' lq <- qasy(formula = f1, data = nc, m = 5, s = 2,
+#' lq1nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
 #'            typems = "no",
 #'            control = list(niter = 10, seedinit = 1111,
 #'                           dthrpc = 0.5) )
-#' lq$QSID79; lq$QBIR79
-
+#' lq1nc$QSID79; lq1nc$QBIR79
+#'
+#' lq2nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
+#'            typems = "cbl",
+#'            control = list(dthrpc = 0.2) )
+#' lq2nc$QSID79; lq2nc$QBIR79
+#'
+#' lq3nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
+#'            typems = "cdt",
+#'            control = list(dthrpc = 0.2) )
+#' lq3nc$QSID79; lq3nc$QBIR79
 #' # Examples with points and matrix of variables
 #'
 #' xf <- matrix(c(nc$QBIR79, nc$QSID79), ncol = 2, byrow = TRUE)
@@ -53,6 +62,21 @@
 #'            control = list(niter = 10, seedinit = 1111,
 #'                           dthrpc = 0.5))
 #' lq
+#'
+#' # Example with Raster
+#'
+#' library(raster)
+#' raster_filepath <- system.file("raster/srtm.tif",
+#'                                 package = "spDataLarge")
+#' xrt <- raster(raster_filepath)
+#' plot(xrt)
+#' ncell(xrt)
+#' qrt <- quantile(values(xrt))
+#' values(xrt) <- as.factor( (values(xrt) > qrt[2]) + (values(xrt) > qrt[3])
+#'                  + (values(xrt) >= qrt[4]) + 1 )
+#' summary(values(xrt))
+#' plot(xrt)
+#'
 qasy <- function(formula = NULL, data = NULL, na.action,
                  m = 3, s = 1, typems = "no", control = list(),
                  xf = NULL, mcoord = NULL) {
@@ -64,7 +88,7 @@ qasy <- function(formula = NULL, data = NULL, na.action,
     warning("unknown names in control: ", paste(noNms, collapse = ", "))
 
   cl <- match.call()
-  # Lectura Datos
+  # Lectura Datos. INCLUIR CASO RASTER...
 
   if (!is.null(formula) && !is.null(data)) {
     if (inherits(data, "Spatial")) data <- as(data, "sf")
@@ -89,8 +113,12 @@ qasy <- function(formula = NULL, data = NULL, na.action,
     if (is.matrix(mcoord)) mcoord <- sp::SpatialPoints(mcoord)
     if (inherits(mcoord, "Spatial")) mcoord <- as(mcoord, "sf")
     data <- mcoord #sf object
-  } else stop("Data wrong")
-
+  } else if (is.null(formula) && !is.null(data)) { # RASTER
+    if (!inherits(xrt, "RasterLayer"))
+      stop("data argument should be a raster")
+    mxf <- as.factor(values(data))
+  } else stop("data wrong")
+  # ADAPTAR LAS FUNCIONES PARA INCLUIR CASO RASTER....
   # CÁLCULO M-SURROUNDINGS...
   if (typems == "no") {
     lmh <- m_surr_no3(x = data, m = m, s = s,

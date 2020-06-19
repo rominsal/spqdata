@@ -4,11 +4,9 @@
 \alias{srq_test}
 \title{A function to calculate the spatial runs test}
 \usage{
-SR_test(fx = fx, listw = listw, alternative="less")
+srq_test(fx = fx, listw = listw, alternative = "less" , nsim = NULL)
 }
 \arguments{
-\item{fx}{vector de observaciones Factor}
-
 \item{listw}{Una lista de los k vecinos más próximos o una matrix W de distancias. Para calcular el numero
 de rachas en cada m-entorno debe establecerse un orden de los vecinos de más próximo a más lejano.}
 
@@ -16,6 +14,8 @@ de rachas en cada m-entorno debe establecerse un orden de los vecinos de más pr
 of "two.sided", "greater" or "less" (default).}
 
 \item{nsim}{Number of permutations to optain confidence intervals. Default value is NULL to dont get CI of number of runs and local.}
+
+\item{fx}{vector de observaciones Factor}
 }
 \value{
 decir que devuelve
@@ -28,7 +28,6 @@ decir que devuelve
     \code{SRGP} \tab vector con los nsim valores de SRGlobal por remuestreo permutacional\cr
     \code{SRQlocal} \tab una matriz donde cada fila muestra el valor del estadístico... \cr
     \code{SRLP} \tab matrix de orden n x nsim con los valores de SRLocal por remuestreo permutacional\cr
-    \code{xxx} \tab no se \cr
     }
 }
 \description{
@@ -36,12 +35,11 @@ This function calculates the runs test for spatial independence
 }
 \details{
 La matrix listw puede ser de tres tipos:
-tabular{ll}{
+  \tabular{ll}{
     \code{knn} \tab Criterio del vecino más próximo \cr
-    \code{nb} \tab Si ontenemos los vecionos  \cr
+    \code{nb} \tab Obteniendo vecinos con frontera comun. Hay que ordenar  \cr
     \code{matrix} \tab Una matriz basada en inversa de la distancia. Bebe contener ceros.\cr
     }
-Aquí Antonio escribe una linda historia
 }
 \examples{
 
@@ -57,7 +55,7 @@ QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
 srq <- srq_test(fx = QY, listw = listw)
 srq$SRglobal
 
-# Fastfood example
+# Fastfood example. sf (points)
 data("FastFood")
 x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
 listw <- spdep::knearneigh(x, k=4)
@@ -81,23 +79,10 @@ c(srq$SRglobal,srq$p.valueSRQ,srq$p.valueSRQB)
 
 # SRQ test based on inverse distance
 data("FastFood")
-x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
-dis <- distm(x, fun=distGeo)
-M1 <- matrix(x[,1],ncol = dim(x)[1],nrow=dim(x)[1])
-M2 <- matrix(x[,2],ncol = dim(x)[1],nrow=dim(x)[1])
-dis <- sqrt((M1-t(M1))^2+(M2-t(M2))^2)
-dis <- (dis < quantile(dis,.1))*1
+n = dim(FastFood.sf)[1]
+dis <- 1000000/matrix(as.numeric(st_distance(FastFood.sf,FastFood.sf)),ncol=n,nrow=n)
 diag(dis) <- 0
-
-
-
-co <- sf::st_coordinates(st_centroid(nc))
-listw <- knearneigh(co[,1:2], k=4)
-p <- c(1/6,3/6,2/6)
-rho = 0.5
-nc$Q <- dgp_spq(x = co, p = p, listw = listw, rho = rho)
-plot(nc["Q"])
-
+dis <- (dis < quantile(dis,.01))*dis
 
 }
 \seealso{

@@ -40,4 +40,4 @@ Definir los siguientes métodos aplicados a la clase spq:
 
 * summary – debe imprimir una tabla, listanto los símbolos, sus frecuencias observadas, frecuencias esperadas e intervalo de confianza. Con asterisco los símbolos con frecuencia observada fuera del IC
 
-* print – imprime el output natural de estadístico
+* print – imprime el output natural de estadístico. SI RATIO R/n NO SUPERA EL VALOR DE 5 ELIMINAR OUTPUT DEL ESTADÍSTICO CORRESPONDIENTE (BIEN SEA HABITUALMENTE Qp O AMBOS)

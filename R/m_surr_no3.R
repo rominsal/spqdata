@@ -31,6 +31,7 @@
 #' mh[1:10,]
 #' dtmh[1:10,]
 #'
+#'
 #' # Examples with multipolygons
 #' library(sf)
 #' fname <- system.file("shape/nc.shp", package="sf")
