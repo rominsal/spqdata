@@ -1,4 +1,4 @@
-SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
+local_srq_test_boots <-  function(xf = xf,listw = listw, nv = nv){
 
   ####
   y <- xf
@@ -65,7 +65,9 @@ SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
 
   varSR <-p*(1-p)*sum(lnnb)+nv[1]*var1+nv[2]*var2+nv[3]*var3-(nv[1]+nv[2]+nv[3])*p^2
 
+  ############################################################################
   # Here we compute the runs starting at each location and it sum is the total number of runs
+  ############################################################################
   nruns <- matrix(0,ncol = 1,nrow = n)
   for (i in 1:n){
     if (lnnb[i]!= 0){ # Solo calcula los test locales si el elemento tiene vecinos
@@ -76,7 +78,25 @@ SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
       nruns[i] <- 1 + sum(abs(diff(runs))>0)
     }
   }
+
+  # MeanR <- 1 + lnnb*p
+  # StdR <- sqrt(lnnb*p*(1-p)+2*(lnnb-1)*(var2-p^2)+(lnnb-1)*(lnnb-2)*(var1-p^2))
+  # ZZ <- (nruns-MeanR)/StdR
+  # pZ <- 2*(1-pnorm(abs(ZZ), mean = 0, sd = 1))
+  # SRQlocal <- cbind(nruns,MeanR,StdR,ZZ,pZ)
   #
+  # SRQlocal <- as.data.frame(SRQlocal)
+  # names(SRQlocal)<-c("runs","mean","std","z-value","p-value")
+
+
+  # El test de rachas da NaN en caso de una sola racha. Pongo Z=99
+
+  # # OJO VER QUE PASA CON RACHAS CORTAS EN HEXAGONOS
+  # SRQlocal[is.na(SRQlocal[,4]),4] <- 99
+
+  # # La distribución del numero de rachas
+  # dnr <- table(SRQlocal[,1])
+
   SR=sum(nruns)
   #The mean of the statistic
   meanSR=n+p*sum(lnnb)
@@ -84,5 +104,5 @@ SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
   # # The SRQ global test statistic which is N(0,1) distributed
   SRQ=(SR-meanSR)/sqrt(varSR)
   # p.valueSRQ <- 2*(1-pnorm(abs(SRQ), mean = 0, sd = 1))
-  return <- list(SR=SR, SRglobal = SRQ, nruns = nruns)
+  return <- list(nruns=nruns)
 }

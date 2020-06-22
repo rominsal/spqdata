@@ -20,6 +20,22 @@
 #' @export
 #' @examples
 #'
+#' # Ejemplos Fernando
+#' # Ejemplo 1
+#' data("FastFood")
+#' f1 <- ~ Type
+#' lq <- qasy(formula = f1, data = FastFood.sf, m = 3, s = 1,
+#'            typems = "no", control = list(seedinit = 1111))
+#' lq
+#'  # Ejemplo 2
+#'
+#' data("Spain")
+#' f1 <- ~ COSTA
+#' lq <- qasy(formula = f1, data = spain.sf, m = 3, s = 1,
+#'            typems = "no", control = list(seedinit = 1111))
+#' lq
+
+
 #' # Examples with multipolygons
 #' library(sf)
 #' fname <- system.file("shape/nc.shp", package="sf")
@@ -38,19 +54,16 @@
 #'      main = "SID79 (Quartiles)")
 #' f1 <- ~ QSID79 + QBIR79
 #' lq1nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-#'            typems = "no",
-#'            control = list(niter = 10, seedinit = 1111,
-#'                           dthrpc = 0.5) )
+#'            typems = "no", control = list(seedinit = 1111,
+#'                                          dthrpc = 0.5) )
 #' lq1nc$QSID79; lq1nc$QBIR79
 #'
 #' lq2nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-#'            typems = "cbl",
-#'            control = list(dthrpc = 0.2) )
+#'               typems = "cbl", control = list(dthrpc = 0.2) )
 #' lq2nc$QSID79; lq2nc$QBIR79
 #'
 #' lq3nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-#'            typems = "cdt",
-#'            control = list(dthrpc = 0.2) )
+#'               typems = "cdt", control = list(dthrpc = 0.2) )
 #' lq3nc$QSID79; lq3nc$QBIR79
 #' # Examples with points and matrix of variables
 #'
@@ -59,28 +72,15 @@
 #'                                          of_largest_polygon = TRUE))
 #' mcoor <- sf::st_coordinates(mctr)[,c("X","Y")]
 #' lq <- qasy(xf = xf, mcoor = mcoor, m = 5, s = 2, typems = "no",
-#'            control = list(niter = 10, seedinit = 1111,
+#'            control = list(seedinit = 1111,
 #'                           dthrpc = 0.5))
 #' lq
 #'
-#' # Example with Raster
-#'
-#' library(raster)
-#' raster_filepath <- system.file("raster/srtm.tif",
-#'                                 package = "spDataLarge")
-#' xrt <- raster(raster_filepath)
-#' plot(xrt)
-#' ncell(xrt)
-#' qrt <- quantile(values(xrt))
-#' values(xrt) <- as.factor( (values(xrt) > qrt[2]) + (values(xrt) > qrt[3])
-#'                  + (values(xrt) >= qrt[4]) + 1 )
-#' summary(values(xrt))
-#' plot(xrt)
 #'
 qasy <- function(formula = NULL, data = NULL, na.action,
                  m = 3, s = 1, typems = "no", control = list(),
                  xf = NULL, mcoord = NULL) {
-  con <- list(niter = 20, seedinit = 1111, dthr = 0, dthrpc = 0)
+  con <- list(seedinit = 1111, dthr = 0, dthrpc = 0)
   #OJO: TAMBIÉN PODEMOS METER EN EL CONTROL EL TIPO DE DISTANCIA, ¿NO?.
   nmsC <- names(con)
   con[(namc <- names(control))] <- control
@@ -88,7 +88,7 @@ qasy <- function(formula = NULL, data = NULL, na.action,
     warning("unknown names in control: ", paste(noNms, collapse = ", "))
 
   cl <- match.call()
-  # Lectura Datos. INCLUIR CASO RASTER...
+  # Lectura Datos.
 
   if (!is.null(formula) && !is.null(data)) {
     if (inherits(data, "Spatial")) data <- as(data, "sf")
@@ -113,17 +113,15 @@ qasy <- function(formula = NULL, data = NULL, na.action,
     if (is.matrix(mcoord)) mcoord <- sp::SpatialPoints(mcoord)
     if (inherits(mcoord, "Spatial")) mcoord <- as(mcoord, "sf")
     data <- mcoord #sf object
-  } else if (is.null(formula) && !is.null(data)) { # RASTER
-    if (!inherits(xrt, "RasterLayer"))
-      stop("data argument should be a raster")
-    mxf <- as.factor(values(data))
+#  } else if (is.null(formula) && !is.null(data)) { # RASTER
+#    if (!inherits(xrt, "RasterLayer"))
+#      stop("data argument should be a raster")
+#    mxf <- as.factor(values(data))
   } else stop("data wrong")
-  # ADAPTAR LAS FUNCIONES PARA INCLUIR CASO RASTER....
-  # CÁLCULO M-SURROUNDINGS...
+  # M-SURROUNDINGS...
   if (typems == "no") {
     lmh <- m_surr_no3(x = data, m = m, s = s,
-                      control = list(niter = con$niter,
-                                     seedinit = con$seedinit,
+                      control = list(seedinit = con$seedinit,
                                      dthr = con$dthr,
                                      dthrpc = con$dthrpc))
   } else if (typems == "cdt") {

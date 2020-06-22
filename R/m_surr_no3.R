@@ -21,10 +21,9 @@
 #' cx <- runif(N)
 #' cy <- runif(N)
 #' x <- cbind(cx,cy)
-#' system.time( msurr_points <- m_surr_no3(x = x, m = m, s = s,
-#'                                         control = list(niter = 5,
-#'                                         seedinit = 123456,
-#'                                         dthr = 0.3)) )
+#' msurr_points <- m_surr_no3(x = x, m = m, s = s,
+#'                            control = list(seedinit = 123456,
+#'                                           dthr = 0.3))
 #' mh <- msurr_points$mh
 #' dtmh <- msurr_points$dtmh
 #' dim(mh); dim(dtmh)
@@ -37,9 +36,9 @@
 #' fname <- system.file("shape/nc.shp", package="sf")
 #' nc <- st_read(fname)
 #' plot(sf::st_geometry(nc))
-#' system.time( msurr_polygonsf <- m_surr_no3(x = nc, m = 5, s = 2,
-#'                      control = list(niter = 50, seedinit = 123456,
-#'                      dthrpc = 0.20)) )
+#' msurr_polygonsf <- m_surr_no3(x = nc, m = 5, s = 2,
+#'                      control = list(seedinit = 123456,
+#'                      dthrpc = 0.20))
 #' mh <- msurr_polygonsf$mh
 #' dtmh <- msurr_polygonsf$dtmh
 #' dim(mh); dim(dtmh)
@@ -47,8 +46,7 @@
 #' dtmh[1:10,]
 
 m_surr_no3 <- function(x, m, s = 1, control = list()) {
-  con <- list(niter = 20, seedinit = 1111,
-              dthr = 0, dthrpc = 0)
+  con <- list(seedinit = 1111, dthr = 0, dthrpc = 0)
   #OJO: TAMBIÉN PODEMOS METER EN EL CONTROL EL TIPO DE DISTANCIA, ¿NO?.
   nmsC <- names(con)
   con[(namc <- names(control))] <- control
@@ -61,8 +59,6 @@ m_surr_no3 <- function(x, m, s = 1, control = list()) {
   # Transform Spatial classes into sf class
   if (inherits(x, "Spatial")) x <- as(x, "sf")
   # Compute centroids/coordinates/distances from sf objects
-  # VIP: NO ME QUEDA CLARO SI HACE FALTA ESTABLECER CONTROLES PARA IMPEDIR
-  #      CENTROIDES DE GEOMETRÍAS. SUPONGO QUE NO...
   if (inherits(x, "sf")) {
     xct <- suppressWarnings(sf::st_centroid(sf::st_geometry(x),
                            of_largest_polygon = TRUE))
@@ -72,47 +68,31 @@ m_surr_no3 <- function(x, m, s = 1, control = list()) {
   mcoor <- sf::st_coordinates(xct)
   dtfull <- sf::st_distance(xct)
   rownames(dtfull) <- colnames(dtfull) <- as.character(1:N)
+  mh <- matrix(NA, Ns, m)
+  dt <- matrix(NA, Ns, m)
   set.seed(con$seedinit)
-  niter <- con$niter
-  lmh <- vector(mode = "list", length = niter)
-  ldtmh <- vector(mode = "list", length = niter)
-  for (k in 1:niter) {
-    mh <- matrix(NA, Ns, m)
-    dt <- matrix(NA, Ns, m)
-    Si <- as.character(1:N)
-    s0i <- as.character(sample(1:N, 1)) # s0
-    dti <- dtfull
-    for (i in 1:Ns) {
-      dsts0i <- dti[s0i,] # Vector of distances to s0i
-      idxnbs0i <- sort(dsts0i, decreasing = FALSE, index.return = TRUE)
-      # Distances to s0i ordered
-      if (is.list(idxnbs0i)) nbs0i <- names(idxnbs0i$x[2:m])
-      if (inherits(idxnbs0i, "units")) nbs0i <- names(idxnbs0i[2:m])
-      # Set of (m-1) neighbors to s0i (excluding itself)
-      mh[i,] <- c(s0i, nbs0i)
-      dt[i,] <- dsts0i[c(s0i,nbs0i)]
-      Ai <- c(s0i,nbs0i[1:(m-s-2)])
-      Si <- Si[!(Si %in% Ai)]
-      dti <- dti[Si, Si]
-      s0i <- nbs0i[m-s-1]
-      #mhs <- m_surr_maxs(mh, s = s) # CREO QUE NO HACE FALTA
-      #dtmhs <- dt[rownames(mhs), ] # CREO QUE NO HACE FALTA
-    }
-    lmh[[k]] <- mh
-    #lmhs[[k]] <- mhs
-    ldtmh[[k]] <- dt
-    #ldtmhs[[k]] <- dtmhs
+  Si <- as.character(1:N)
+  s0i <- as.character(sample(1:N, 1)) # initial s0
+  dti <- dtfull
+  for (i in 1:Ns) {
+    dsts0i <- dti[s0i,] # Vector of distances to s0i
+    idxnbs0i <- sort(dsts0i, decreasing = FALSE, index.return = TRUE)
+    # Distances to s0i ordered
+    if (is.list(idxnbs0i)) nbs0i <- names(idxnbs0i$x[2:m])
+    if (inherits(idxnbs0i, "units")) nbs0i <- names(idxnbs0i[2:m])
+    # Set of (m-1) neighbors to s0i (excluding itself)
+    mh[i,] <- c(s0i, nbs0i)
+    dt[i,] <- dsts0i[c(s0i,nbs0i)]
+    if ((m-s-2) > 0) Ai <- c(s0i,nbs0i[1:(m-s-2)]) else Ai <- c(s0i)
+    Si <- Si[!(Si %in% Ai)]
+    dti <- dti[Si, Si]
+    s0i <- nbs0i[m-s-1]
   }
-  mh <- NULL
-  #mhs <- NULL
-  dtmh <- NULL
-  #dtmhs <- NULL
-  for (k in 1:niter) {
-    mh <- rbind(mh, lmh[[k]])
-    #mhs <- rbind(mhs, lmhs[[k]])
-    dtmh <- rbind(dtmh, ldtmh[[k]])
-    #dtmhs <- rbind(dtmhs, ldtmhs[[k]])
-  }
+
+  # Check for overlappings in mh
+  mh <- m_surr_maxs(mh, s = s)
+  dtmh <- dt[rownames(mh), ]
+
   # Check for threshold in distances dthr = 0, dthrpc = 0
   if (con$dthr > 0 || con$dthrpc > 0) {
     if (con$dthrpc <= 1)

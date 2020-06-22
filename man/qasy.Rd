@@ -35,6 +35,20 @@ Aquí Antonio escribe una linda historia
 }
 \examples{
 
+# Ejemplos Fernando
+# Ejemplo 1
+data("FastFood")
+f1 <- ~ Type
+lq <- qasy(formula = f1, data = FastFood.sf, m = 3, s = 1,
+           typems = "no", control = list(seedinit = 1111))
+lq
+ # Ejemplo 2
+
+data("Spain")
+f1 <- ~ COSTA
+lq <- qasy(formula = f1, data = spain.sf, m = 3, s = 1,
+           typems = "no", control = list(seedinit = 1111))
+lq
 # Examples with multipolygons
 library(sf)
 fname <- system.file("shape/nc.shp", package="sf")
@@ -53,19 +67,16 @@ plot(nc["QSID79"], pal = c("#FFFEDE","#FFDFA2", "#FFA93F", "#D5610D"),
      main = "SID79 (Quartiles)")
 f1 <- ~ QSID79 + QBIR79
 lq1nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-           typems = "no",
-           control = list(niter = 10, seedinit = 1111,
-                          dthrpc = 0.5) )
+           typems = "no", control = list(seedinit = 1111,
+                                         dthrpc = 0.5) )
 lq1nc$QSID79; lq1nc$QBIR79
 
 lq2nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-           typems = "cbl",
-           control = list(dthrpc = 0.2) )
+              typems = "cbl", control = list(dthrpc = 0.2) )
 lq2nc$QSID79; lq2nc$QBIR79
 
 lq3nc <- qasy(formula = f1, data = nc, m = 5, s = 2,
-           typems = "cdt",
-           control = list(dthrpc = 0.2) )
+              typems = "cdt", control = list(dthrpc = 0.2) )
 lq3nc$QSID79; lq3nc$QBIR79
 # Examples with points and matrix of variables
 
@@ -74,23 +85,10 @@ mctr <- suppressWarnings(sf::st_centroid(sf::st_geometry(nc),
                                          of_largest_polygon = TRUE))
 mcoor <- sf::st_coordinates(mctr)[,c("X","Y")]
 lq <- qasy(xf = xf, mcoor = mcoor, m = 5, s = 2, typems = "no",
-           control = list(niter = 10, seedinit = 1111,
+           control = list(seedinit = 1111,
                           dthrpc = 0.5))
 lq
 
-# Example with Raster
-
-library(raster)
-raster_filepath <- system.file("raster/srtm.tif",
-                                package = "spDataLarge")
-xrt <- raster(raster_filepath)
-plot(xrt)
-ncell(xrt)
-qrt <- quantile(values(xrt))
-values(xrt) <- as.factor( (values(xrt) > qrt[2]) + (values(xrt) > qrt[3])
-                 + (values(xrt) >= qrt[4]) + 1 )
-summary(values(xrt))
-plot(xrt)
 
 }
 \keyword{...}

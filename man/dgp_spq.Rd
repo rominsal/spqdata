@@ -38,7 +38,8 @@ x <- cbind(cx,cy)
 listw <- spdep::nb2listw(knn2nb(knearneigh(cbind(cx,cy), k=4)))
 p <- c(1/6,3/6,2/6)
 rho = 0.5
-QY <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
+xf <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
+
 }
 \seealso{
 \code{\link{q_symb}}, \code{\link{m_surr_no}}

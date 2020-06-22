@@ -1,7 +1,8 @@
 #'
-#' @title A function to calculate the global spatial runs test (SRQ)
+#' @title A function to calculate the local spatial runs tests (SRQ)
 #'
-#' @description This function calculates the spatial runs test for spatial independence of a categorical spatial data set.
+#' @description This function calculates the local spatial runs test for each localization.
+#' The SQRL local tests
 #' @param data san optional data frame or a sf object containing the variable to testing for.
 #' @param listw una lista de vecinos (tipo knn o nb) o una matrix W que indique el orden de cada $m_i-entorno$
 #' (por ejemplo de inversa distancia). Para calcular el numero de rachas en cada m_i-entorno debe establecerse
@@ -9,18 +10,16 @@
 #' @param xf vector de observaciones de la clase factor.
 #' @param alternative a character string specifying the alternative hypothesis, must be one
 #' of "two.sided", "greater" or "less" (default).
-#' @param nsim Number of permutations to optain confidence intervals (CI).
+#' @param nsim Number of permutations to optain confidence intervals by permutation (CI).
 #' Default value is NULL to don`t get CI of number of runs and local.
 #' @usage srq_test(formula = NULL, data = NULL, na.action, xf = NULL,
-#' listw = listw, alternative = "greater" , nsim = NULL, control = list())
+#' listw = listw, alternative = "less" , nsim = NULL, control = list())
 #' @keywords spatial association, qualitative variable, runs test
-#' @details El orden de las vecindades (m_i-entornos) es crítico.
-#' El objeto listw puede ser de tres tipos:
+#' @details El objeto listw puede ser de tres tipos:
 #'   \tabular{ll}{
 #'     \code{knn} \tab Un objeto tipo knn obtenida utilizando el criterio del vecino más próximo, obtenida por ejemplo con \code{\link{knearneigh}}\cr
-#'     \code{nb} \tab Un objeto tipo nb obtenido con \code{\link{poly2nb}}\cr
-#'     \code{matrix} \tab Una matriz indicando el orden de vecindad de cada m_i-entorno.
-#'     Por ejemplo basada en inversa de la distancia con cierto punto de corte.\cr
+#'     \code{nb} \tab Un objeto tipo nb obtenido con \code{\link{spdep::poly2nb}}.\cr
+#'     \code{matrix} \tab Una matriz indicando el orden de vecindad de cada m_i-entorno. Por ejemplo basada en inversa de la distancia con cierto punto de corte.\cr
 #'     }
 #' @return decir que devuelve
 #'   \tabular{ll}{
@@ -28,10 +27,10 @@
 #'     \code{dnr} \tab distribución empírica del numero de rachas \cr
 #'     \code{SRQ} \tab Test de homogeneidad. Negative sign indicates global homogeneity \cr
 #'     \code{p.valueSRQ} \tab p-value of the SRglobal \cr
-#'     \code{p.valueS$QB} \tab the pseudo p-value of the SRQ test\cr
-#'     \code{MeanNeig} \tab Número medio de vecinos\cr
+#'     \code{p.valueSRQB} \tab the pseudo p-value of the SRQ test\cr
 #'     \code{SRGP} \tab vector con los 'nsim' valores de SRGlobal por remuestreo permutacional\cr
-#'     \code{MaxNeig} \tab Número máximo de vecinos\cr
+#'     \code{SRQlocal} \tab a data-frame with "runs","mean","std","z-value","p-value" \cr
+#'     \code{SRLP} \tab matrix de orden n x nsim con los valores de SRLocal por remuestreo permutacional\cr
 #'     }
 #' @author
 #'   \tabular{ll}{
@@ -51,9 +50,9 @@
 #' @export
 #' @examples
 #'
-#' # SRQ test based on knn
+#' # Local SRQ test based on knn
 #' rm(list = ls())
-#' N <- 1000
+#' N <- 100
 #' cx <- runif(N)
 #' cy <- runif(N)
 #' x <- cbind(cx,cy)
@@ -61,18 +60,18 @@
 #' p <- c(1/6,3/6,2/6)
 #' rho <- 0.5
 #' xf <- dgp_spq(x = x, p = p, listw = listw, rho = rho)
-#' srq <- srq_test(xf = xf, listw = listw)
-#' srq$SRQ
-#' plot.srq(srq)
+#' lsrq <- local_srq_test(xf = xf, listw = listw)
+#' lsrq$SRQlocal
+#' plot.lsrq(lsrq)
 #'
 #' # Fastfood example. sf (points)
 #' data("FastFood")
 #' x <- cbind(FastFood.sf$Lon,FastFood.sf$Lat)
 #' listw <- spdep::knearneigh(x, k=4)
 #' formula <- ~ Type
-#' srq <- srq_test(formula = formula, data = FastFood.sf, listw = listw)
-#' srq$SRQ
-#' plot.srq(srq)
+#' lsrq <- local_srq_test(formula = formula, data = FastFood.sf, listw = listw)
+#' lsrq$SRQlocal
+#' plot.srq(lsrq)
 #'
 #' # With a sf object (poligons)
 #' library(sf)
@@ -85,9 +84,17 @@
 #' nc$xf <- dgp_spq(x = co, p = p, listw = listw, rho = rho)
 #' plot(nc["xf"])
 #' formula <- ~ xf
-#' srq <- srq_test(formula = formula, data = nc, listw = listw, nsim=399)
-#' c(srq$SRQ,srq$p.valueSRQ,srq$p.valueSRQB)
+#' lsrq <- local_srq_test(formula = formula, data = nc, listw = listw, nsim=399)
+#' lsrq$SRQlocal
 #' plot.srq(srq)
+#'
+#' # Con zonas aisladas sin conexion
+#' data(Spain)
+#' listw <- spdep::poly2nb(as(spain.sf,"Spatial"), queen = FALSE)
+#' plot(spain.sf["HOM_MUJ"])
+#' formula <- ~ HOM_MUJ
+#' lsrq <- local_srq_test(formula = formula, data = spain.sf, listw = listw)
+#' lsrq$SRQlocal
 #'
 #' # SRQ test based on inverse distance
 #' data("FastFood")
@@ -97,8 +104,8 @@
 #' dis <- (dis < quantile(dis,.01))*dis
 #'
 
-srq_test <-  function(formula = NULL, data = NULL, na.action, xf = NULL,
-                       listw = listw, alternative = "two-sided" , regular = FALSE, nsim = NULL, control = list()){
+local_srq_test <-  function(formula = NULL, data = NULL, na.action, xf = NULL,
+                       listw = listw, alternative = "two-sided" , nsim = NULL, control = list()){
 
   # Solo admite matrices knn o nb
   if (class(listw) != "knn"){
@@ -208,73 +215,64 @@ var3=p;
 
 varSR=p*(1-p)*sum(lnnb)+nv[1]*var1+nv[2]*var2+nv[3]*var3-(nv[1]+nv[2]+nv[3])*p^2
 
+############################################################################
 # Here we compute the runs starting at each location and it sum is the total number of runs
+############################################################################
 nruns <- matrix(0,ncol = 1,nrow = n)
 for (i in 1:n){
   if (lnnb[i]!= 0){ # Solo calcula los test locales si el elemento tiene vecinos
-  if (class(listw)[1]=="knn"){
-    runs <- y[c(i,listw$nn[i,])]}
-  if (class(listw)[1]=="nb"){
-    runs <- y[c(i,listw[[i]])]}
-nruns[i] <- 1 + sum(abs(diff(runs))>0)
+    if (class(listw)[1]=="knn"){
+      runs <- y[c(i,listw$nn[i,])]}
+    if (class(listw)[1]=="nb"){
+      runs <- y[c(i,listw[[i]])]}
+    nruns[i] <- 1 + sum(abs(diff(runs))>0)
   }
 }
 
-# La distribución del numero de rachas
-dnr <- table(factor(nruns, levels = c(1:MaxNeig))) # dnr <- table(SRQlocal[,1],exclude = 0) # Excluimos localizaciones con 0 vecinos
+MeanR <- 1 + lnnb*p
+StdR <- sqrt(lnnb*p*(1-p)+2*(lnnb-1)*(var2-p^2)+(lnnb-1)*(lnnb-2)*(var1-p^2))
+ZZ <- (nruns-MeanR)/StdR
+pZ <- 2*(1-pnorm(abs(ZZ), mean = 0, sd = 1))
+pmenorZ <- pnorm(ZZ, mean = 0, sd = 1)
+pmayorZ <- 1-pnorm(ZZ, mean = 0, sd = 1)
+SRQlocal <- cbind(nruns,MeanR,StdR,ZZ,pZ,pmenorZ,pmayorZ)
 
-SR <- sum(nruns)
+SRQlocal <- as.data.frame(SRQlocal)
+names(SRQlocal)<-c("runs_i","Mean_i","Std_i","z-value","p-value","p.menor","p.mayor")
 
-# The mean of the statistic
-meanSR <- n+p*sum(lnnb)
+# # El test de rachas da NaN en caso de una sola racha. Pongo Z=99
+# # OJO VER QUE PASA CON RACHAS CORTAS EN HEXAGONOS
+# SRQlocal[is.na(SRQlocal[,4]),4] <- 99
 
-# The SRQ global test statistic which is N(0,1) distributed
-SRQ <- (SR-meanSR)/sqrt(varSR)
-if (alternative =="two-sided"){
-p.valueSRQ <- 2*(1-pnorm(abs(SRQ), mean = 0, sd = 1))
-} else if (alternative =="less"){
-p.valueSRQ <- pnorm(SRQ, mean = 0, sd = 1)
-} else if (alternative =="greater"){
-p.valueSRQ <- 1-pnorm(SRQ, mean = 0, sd = 1)
-}
 ############################################################################
 # Para la obtención de los intervalos de confianza por boots permutacional
 ############################################################################
 if (is.null(nsim) == FALSE){
   set.seed(123)
-SRGP <- matrix(0,ncol = 1,nrow = nsim)
-SRLP <- matrix(0,ncol = nsim, nrow = n)
+  LSRQP <- matrix(0,ncol = nsim, nrow = n)
     for (i in 1:nsim){
     yp <- y[sample(1:n)]
-    srqp <- SR_test_boots(xf = yp, listw = listw, nv = nv)
-    SRGP[i] <- srqp$SRglobal
-    SRLP[,i] <- srqp$nruns
+    lsrqp <- local_srq_test_boots(xf = yp, listw = listw, nv = nv)
+    LSRQP[,i] <- lsrqp$nruns
     }
-if (alternative =="greater"){
-p.valueSRQB <- sum(SRGP > SRQ)/(nsim+1)
-}
-else if (alternative =="less"){
-  p.valueSRQB <- sum(SRGP < SRQ)/(nsim+1)
-}
-else if (alternative =="two-sided"){
-  p.valueSRQB <- (sum(SRGP < SRQ) + sum(SRGP > SRQ))/(nsim+1)
-} else stop("alternative wrong")
+
+  mSRQlocal <- matrix(SRQlocal[,1], ncol = nsim, nrow = n)
+  SRQlocal$menores <- rowSums(LSRQP<mSRQlocal)/(nsim+1)
+  SRQlocal$menorigual <- rowSums(LSRQP<=mSRQlocal)/(nsim+1)
+  SRQlocal$mayores <- rowSums(LSRQP>mSRQlocal)/(nsim+1)
+  SRQlocal$mayorigual <- rowSums(LSRQP>=mSRQlocal)/(nsim+1)
 }
 
-# El número total de rachas es la suma de las rachas en cada m_i-entorno
-# colSums(SRLP) da el número de rachas de las nsim repeticiones
-# SRGP es un vector con los valores de SRGlobal bajo aleatoriedad
 ############################################################
 # Salida en función si se piden intervalos IC o no
+############################################################
 if (is.null(nsim) == FALSE){
-return <- list(SR = SR, dnr = dnr, SRQ  = SRQ, p.valueSRQ = p.valueSRQ, alternative = alternative,
-               SRGP = SRGP, p.valueSRQB = p.valueSRQB,
-               nsim = nsim, SRLP = SRLP, MeanNeig=sum(lnnb)/n,
-               listw = listw, MaxNeig = MaxNeig)
+return <- list(SRQlocal = SRQlocal,LSRQP = LSRQP, nsim = nsim , MeanNeig=sum(lnnb)/n,
+               listw=listw, MaxNeig = MaxNeig)
 }
 else
 {
-return <- list(SR = SR, dnr = dnr, SRQ = SRQ, p.valueSRQ = p.valueSRQ, alternative = alternative,
-               MeanNeig=sum(lnnb)/n,listw = listw, MaxNeig = MaxNeig)
+return <- list(SRQlocal=SRQlocal,MeanNeig = sum(lnnb)/n, listw = listw, MaxNeig = MaxNeig)
 }
 }
+

@@ -38,10 +38,6 @@ s = 2
 cx <- runif(N)
 cy <- runif(N)
 x <- cbind(cx,cy)
-# VIP: THE THRESHOLD OF THE DISTANCE NEED TO BE VERY SMALL TO
-# FIND M-SURROUNDINGS EXCEDING THE THRESHOLD.
-system.time( msurr_points <- m_surr_cdt(x = x, m = m, s = s,
-                                        control = list(dthr = 0.05)) )
 mh <- msurr_points$mh
 dtmh <- msurr_points$dtmh
 dim(mh); dim(dtmh)
@@ -52,8 +48,10 @@ library(sf)
 fname <- system.file("shape/nc.shp", package="sf")
 nc <- st_read(fname)
 plot(sf::st_geometry(nc))
-lmh3 <- m_surr_cdt(nc, m = 3, s = 2, control = list(dthrpc = 0.1))
-lmh5 <- m_surr_cdt(nc, m = 5, s = 1, control = list(dthrpc = 0.1))
+lmh3 <- m_surr_cdt(nc, m = 3, s = 2,
+                   control = list(dthrpc = 0.1))
+lmh5 <- m_surr_cdt(nc, m = 5, s = 1,
+                   control = list(dthrpc = 0.1))
 # m-surroundings or m-histories
 lmh3$mh[1:3, ]; lmh5$mh[1:3, ]
 # Distances in m-surroundings

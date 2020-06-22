@@ -67,16 +67,49 @@ SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
 
   # Here we compute the runs starting at each location and it sum is the total number of runs
   nruns <- matrix(0,ncol = 1,nrow = n)
+  SRQlocal <- matrix(0,ncol = 1,nrow = n)
   for (i in 1:n){
     if (lnnb[i]!= 0){ # Solo calcula los test locales si el elemento tiene vecinos
-      if (class(listw)[1]=="knn"){
-        runs <- y[c(i,listw$nn[i,])]}
-      if (class(listw)[1]=="nb"){
-        runs <- y[c(i,listw[[i]])]}
-      nruns[i] <- 1 + sum(abs(diff(runs))>0)
+    if (class(listw)[1]=="knn"){
+      runs <- y[c(i,listw$nn[i,])]}
+    if (class(listw)[1]=="nb"){
+      runs <- y[c(i,listw[[i]])]}
+    rrun <- abs(diff(runs))
+    nruns[i] <- 1+sum(abs(rrun)>0)
+    qqsi <- length(unique(runs))
+    # ###### codigo viejo
+    # bb <- runs_test(xx=runs,p=p,var1=var1,var2=var2,q=q)
+    # SRQlocal[i,1] <- bb$R
+    # # SRQlocal[i,2] <- bb$meanR
+    # # SRQlocal[i,3] <- bb$stdR
+    # # SRQlocal[i,4] <- bb$Z
+    # # SRQlocal[i,5] <- 2*(1-pnorm(abs(bb$Z), mean = 0, sd = 1))
+    ###### codigo nuevo
+    ff <- sort(unique(runs))
+    nx <- length(runs)-1
+    # ni <- numeric()
+    # for (i in 1:q){
+    #   ni[i] <- sum(runs==ff[i])
+    # }
+    R <- 1 + sum(abs(diff(runs))>0)
+    meanR <- 1 + nx*p
+    stdR <- sqrt(nx*p*(1-p)+2*(nx-1)*(var2-p^2)+(nx-1)*(nx-2)*(var1-p^2))
+    Z <- (R-meanR)/stdR
+    SRQlocal[i,1] <- R
+    # SRQlocal[i,2] <- meanR
+    # SRQlocal[i,3] <- stdR
+    # SRQlocal[i,4] <- Z
+    # SRQlocal[i,5] <- 2*(1-pnorm(abs(Z), mean = 0, sd = 1))
     }
-  }
-  #
+    }
+  # El test de rachas da NaN en caso de una sola racha. Pongo Z=99
+
+  # # OJO VER QUE PASA CON RACHAS CORTAS EN HEXAGONOS
+  # SRQlocal[is.na(SRQlocal[,4]),4] <- 99
+
+  # # La distribución del numero de rachas
+  # dnr <- table(SRQlocal[,1])
+
   SR=sum(nruns)
   #The mean of the statistic
   meanSR=n+p*sum(lnnb)
@@ -84,5 +117,5 @@ SR_test_boots <-  function(xf = xf,listw = listw, nv = nv){
   # # The SRQ global test statistic which is N(0,1) distributed
   SRQ=(SR-meanSR)/sqrt(varSR)
   # p.valueSRQ <- 2*(1-pnorm(abs(SRQ), mean = 0, sd = 1))
-  return <- list(SR=SR, SRglobal = SRQ, nruns = nruns)
+  return <- list(SR=SR, SRglobal = SRQ, SRQlocal = SRQlocal)
 }

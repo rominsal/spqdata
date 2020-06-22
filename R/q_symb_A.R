@@ -58,7 +58,7 @@
 #' mylist <- list()
 #' for (i in 1:dim(mh31)[1]){mylist[[i]] <- mh31[i,]}
 #'
-#' plot(g1,layout=layout.norm(x),edge.arrow.mode=0,edge.width=0,vertex.size=1,vertex.label="",vertex.color="red",vertex.label.font=0,mark.groups=mylist)
+#'
 #'
 #'
 #'

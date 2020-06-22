@@ -35,10 +35,9 @@ s = 2
 cx <- runif(N)
 cy <- runif(N)
 x <- cbind(cx,cy)
-system.time( msurr_points <- m_surr_no3(x = x, m = m, s = s,
-                                        control = list(niter = 5,
-                                        seedinit = 123456,
-                                        dthr = 0.3)) )
+msurr_points <- m_surr_no3(x = x, m = m, s = s,
+                           control = list(seedinit = 123456,
+                                          dthr = 0.3))
 mh <- msurr_points$mh
 dtmh <- msurr_points$dtmh
 dim(mh); dim(dtmh)
@@ -51,9 +50,9 @@ library(sf)
 fname <- system.file("shape/nc.shp", package="sf")
 nc <- st_read(fname)
 plot(sf::st_geometry(nc))
-system.time( msurr_polygonsf <- m_surr_no3(x = nc, m = 5, s = 2,
-                     control = list(niter = 50, seedinit = 123456,
-                     dthrpc = 0.20)) )
+msurr_polygonsf <- m_surr_no3(x = nc, m = 5, s = 2,
+                     control = list(seedinit = 123456,
+                     dthrpc = 0.20))
 mh <- msurr_polygonsf$mh
 dtmh <- msurr_polygonsf$dtmh
 dim(mh); dim(dtmh)
