@@ -3,7 +3,7 @@
 \docType{data}
 \name{FastFood.sf}
 \alias{FastFood.sf}
-\title{Distribution Fast-Food restaurant in Toronto}
+\title{Distribution Fast-Food restaurants in Toronto}
 \format{
 A sf object with 877 rows and 4 variables:
 
@@ -18,14 +18,14 @@ A sf object with 877 rows and 4 variables:
 El papel con A y M en JGS
 }
 \usage{
-FastFood.sf
+data(FastFood)
 }
 \description{
-Conjunto de datos de prueba. PARA PROBAR ELEMENTOS SIN VECINOS
+Distribution Fast-Food restaurants in Toronto
 }
 \references{
 \itemize{
-    \item PRuiz M, López FA, A Páez. (2010). \emph{Testing for spatial association of qualitative 
+    \item PRuiz M, López FA, A Páez. (2010). \emph{Testing for spatial association of qualitative
     data using symbolic dynamics}. Journal of Geographical Systems. 12 (3) 281-309
   }
 }

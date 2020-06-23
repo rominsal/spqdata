@@ -8,10 +8,10 @@
 
 }
 \source{
-El papel del COVID-19 con A
+\url{https://onlinelibrary.wiley.com/doi/full/10.1111/gean.12241}
 }
 \usage{
-spain.sf
+data(Spain)
 }
 \description{
 Conjunto de datos de prueba. PARA PROBAR ELEMENTOS SIN VECINOS

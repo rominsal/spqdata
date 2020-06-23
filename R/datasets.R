@@ -1,23 +1,22 @@
-#' España por provincias 
+#' España por provincias
 #'
 #' Conjunto de datos de prueba. PARA PROBAR ELEMENTOS SIN VECINOS
+#' @docType data
 #'
-#' @format A sf object with 50 rows and X variables:
-#' 
+#' @usage data(Spain)
+#'
+#' @format a sf object with 50 rows and 7 variables:
 #' \describe{
-#'   \item{PROVINCIA}{Province name.}
-#'   \item{POPULATION}{Population.}
-#'   \item{MAY_65}{Factor 3 categorias en funcion del % mayores.}
-#'   \item{EDAD_MED}{Edad Media.}
-#'   \item{HOM_MUJ}{Factor 2 categorias "men" si % hombres > muejres}
-#'   \item{METRO}{Tiene metro.}
-#'   \item{COSTA}{Tiene costa}
-#'   \item{AREA}{Area.}
-#'   \item{ACRES}{Acres}
-#'   \item{PERIMETER}{Perimetro}
+#'   \item{Province}{Province name.}
+#'   \item{Population}{Population.}
+#'   \item{Older65}{Factor 3 categorias en funcion del % mayores.}
+#'   \item{AverageAge}{Edad Media.}
+#'   \item{MenWoman}{Factor 2 categorias "men" si % hombres > muejres}
+#'   \item{MassTransitSystems}{Tiene metro.}
+#'   \item{Coast}{Tiene costa}
 #' }
 #'
-#' @source El papel del COVID-19 con A
+#' @source \url{https://onlinelibrary.wiley.com/doi/full/10.1111/gean.12241}
 #'
 #' @references
 #'   \itemize{
@@ -26,12 +25,14 @@
 #'   }
 "spain.sf"
 
-#' Distribution Fast-Food restaurant in Toronto 
+#' Distribution Fast-Food restaurants in Toronto
 #'
-#' Conjunto de datos de prueba. PARA PROBAR ELEMENTOS SIN VECINOS
+#' @docType data
+#'
+#' @usage data(FastFood)
 #'
 #' @format A sf object with 877 rows and 4 variables:
-#' 
+#'
 #' \describe{
 #'   \item{ID}{Identification}
 #'   \item{Lat}{Latitude.}
@@ -43,7 +44,7 @@
 #'
 #' @references
 #'   \itemize{
-#'     \item PRuiz M, López FA, A Páez. (2010). \emph{Testing for spatial association of qualitative 
+#'     \item PRuiz M, López FA, A Páez. (2010). \emph{Testing for spatial association of qualitative
 #'     data using symbolic dynamics}. Journal of Geographical Systems. 12 (3) 281-309
 #'   }
 "FastFood.sf"

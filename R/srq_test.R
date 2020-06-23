@@ -1,16 +1,16 @@
 #'
 #' @title A function to calculate the global spatial runs test (SRQ)
 #'
-#' @description This function calculates the spatial runs test for spatial independence of a categorical spatial data set.
-#' @param data san optional data frame or a sf object containing the variable to testing for.
+#' @description This function calculates the global spatial runs test for spatial independence of a categorical spatial data set.
+#' @param data an (optional) data frame or a sf object containing the variable to testing for.
 #' @param listw una lista de vecinos (tipo knn o nb) o una matrix W que indique el orden de cada $m_i-entorno$
 #' (por ejemplo de inversa distancia). Para calcular el numero de rachas en cada m_i-entorno debe establecerse
 #' un orden, por ejemplo del vecino más próximo al más lejano.
-#' @param xf vector de observaciones de la clase factor.
+#' @param xf un factor. vector de observaciones de la clase factor.
 #' @param alternative a character string specifying the alternative hypothesis, must be one
 #' of "two.sided", "greater" or "less" (default).
 #' @param nsim Number of permutations to optain confidence intervals (CI).
-#' Default value is NULL to don`t get CI of number of runs and local.
+#' Default value is NULL to don`t get CI of number of runs.
 #' @usage srq_test(formula = NULL, data = NULL, na.action, xf = NULL,
 #' listw = listw, alternative = "greater" , nsim = NULL, control = list())
 #' @keywords spatial association, qualitative variable, runs test
@@ -27,11 +27,14 @@
 #'     \code{SR} \tab numero total de rachas \cr
 #'     \code{dnr} \tab distribución empírica del numero de rachas \cr
 #'     \code{SRQ} \tab Test de homogeneidad. Negative sign indicates global homogeneity \cr
-#'     \code{p.valueSRQ} \tab p-value of the SRglobal \cr
-#'     \code{p.valueS$QB} \tab the pseudo p-value of the SRQ test\cr
+#'     \code{p.valueSRQ} \tab p-value of the SRQ \cr
+#'     \code{p.valueSRQB} \tab the pseudo p-value of the SRQ test\cr
 #'     \code{MeanNeig} \tab Número medio de vecinos\cr
-#'     \code{SRGP} \tab vector con los 'nsim' valores de SRGlobal por remuestreo permutacional\cr
 #'     \code{MaxNeig} \tab Número máximo de vecinos\cr
+#'     \code{listw} \tab la lista de vecinos\cr
+#'     \code{nsim} \tab numero de repeticiones\cr
+#'     \code{SRGP} \tab vector con los 'nsim' valores de SRQ por remuestreo permutacional\cr
+#'     \code{SRLP} \tab matrix con el número de rachas en cada localización para cada permutación\cr
 #'     }
 #' @author
 #'   \tabular{ll}{
@@ -89,31 +92,89 @@
 #' c(srq$SRQ,srq$p.valueSRQ,srq$p.valueSRQB)
 #' plot.srq(srq)
 #'
+#'# With a sf object (poligons) WITH ZEROS
+#' data(Spain)
+#' listw <- spdep::poly2nb(spain.sf, queen = FALSE)
+#' listw <- nb2nb_order(listw,spain.sf)
+#'
+#' # SRQ test based on inverse distance
+#' rm(list = ls())
+#' N <- 500
+#' cx <- runif(N)
+#' cy <- runif(N)
+#' x <-cbind(cx,cy)
+#' xx <- as.data.frame(cbind(cx,cy))
+#' xx <- st_as_sf(xx,coords = c("cx","cy"))
+#' n = dim(xx)[1]
+#' dis <- 1/matrix(as.numeric(st_distance(xx,xx)),ncol=n,nrow=n)
+#' diag(dis) <- 0
+#' dis <- (dis < quantile(dis,.05))*dis
+#' rowSums(dis>0)
+
+#' p <- c(1/6,3/6,2/6)
+#' rho <- 0.5
+#' xf <- dgp_spq(x = x, p = p, listw = dis, rho = rho)
+#' srq <- srq_test(xf = xf, listw = dis)
+#' srq$SRQ
+#' plot.srq(srq)
+#'
+#' data("FastFood")
+#' n = dim(FastFood.sf)[1]
+#' dis <- 1000000/matrix(as.numeric(st_distance(FastFood.sf,FastFood.sf)),ncol=n,nrow=n)
+#' diag(dis) <- 0
+#' dis <- (dis < quantile(dis,.005))*dis
+#' p <- c(1/6,3/6,2/6)
+#' rho = 0.5
+#' co <- sf::st_coordinates(st_centroid(FastFood.sf))
+#' FastFood.sf$xf <- dgp_spq(x = co, p = p, listw = dis, rho = rho)
+#' plot(FastFood.sf["xf"])
+#' formula <- ~ xf
+#' srq <- srq_test(formula = formula, data = FastFood.sf, listw = dis)
+#' srq$SRQ
+#' plot.srq(srq)
+#'
+#'
 #' # SRQ test based on inverse distance
 #' data("FastFood")
 #' n = dim(FastFood.sf)[1]
 #' dis <- 1000000/matrix(as.numeric(st_distance(FastFood.sf,FastFood.sf)),ncol=n,nrow=n)
 #' diag(dis) <- 0
-#' dis <- (dis < quantile(dis,.01))*dis
+#' dis <- (dis < quantile(dis,.005))*dis
+#' formula <- ~ Type
+#' srq <- srq_test(formula = formula, data = FastFood.sf, listw = dis)
+#' srq$SRQ
+#' plot.srq(srq)
+#'
 #'
 
 srq_test <-  function(formula = NULL, data = NULL, na.action, xf = NULL,
                        listw = listw, alternative = "two-sided" , regular = FALSE, nsim = NULL, control = list()){
 
   # Solo admite matrices knn o nb
-  if (class(listw) != "knn"){
-    if (class(listw) != "nb"){
-      stop ("tiene que ser de la clase knn o nb")
+  if (class(listw)[1] != "knn"){
+    if (class(listw)[1] != "nb"){
+      if (class(listw)[1] != "matrix"){
+      stop ("tiene que ser de la clase knn, nb o matrix")
+      }
     }
   }
-
-# Si se trata de un objeto sf y la matrix es tipo 'nb' hay que ordenar los m_i-entornos
-if (sum(class(data)=="sf")==1){
-if (class(listw)=='nb'){ # hay que ordenar los elementos
+################################################
+## Tratamiento de la matrix
+################################################
+# Si se trata de un objeto sf y la matrix es tipo 'nb' / "matrix" hay que ordenar los m_i-entornos
+if (sum(class(data)[1]=="sf")==1){
+if (class(listw)[1]=='nb'){ # hay que ordenar los elementos
   listw <- nb2nb_order(listw=listw, sf = data)
 }
+if (class(listw)[1]=='matrix'){ # hay que ordenar los elementos
+      listw <- mat2listw(listw)$neighbours
+      class(listw) <- "nb"
+      listw2 <- nb2nb_order(listw=listw, sf = data)
 }
-
+}
+################################################
+## Tratamiento del input de los datos
+################################################
 # Selecciona los argumentos. Bien con (formula + data) o bien incluye la variable (xf)
   if (!is.null(formula) && !is.null(data)) {
     if (inherits(data, "Spatial")) data <- as(data, "sf")
@@ -141,7 +202,9 @@ if (class(listw)=='nb'){ # hay que ordenar los elementos
     stop("Only factors are admitted")
   }
 
-#### EMPEZAMOS LAS CUENTAS
+################################################
+## Empezamos las cuentas del test
+################################################
 
 # Calculo valores previos para obtener media y varianza estadístico
 nv <- creation_nvar_SR(listw = listw)

@@ -65,12 +65,14 @@ nb2nb_order <- function(listw = listw, sf = sf){
   co <- sf::st_coordinates(st_centroid(sf))
   NB <- list()
 for (i in 1:dim(co)[1]){
+  if (m[i]==0){NB[[i]]<- as.integer(0)}
+  else {
   a <- co[listw[[i]],] - t(matrix(co[i,],nrow = 2,ncol = length(listw[[i]])))
   a <- round(cbind(sqrt(a[,1]^2+a[,2]^2),atan2(a[,1],a[,2])*180/pi),digits = 6)
   a <- order(a[,1],a[,2])
   # a <- order(a,decreasing = FALSE) # sort(a,index.return=TRUE)$ix
   NB[[i]] <- listw[[i]][a]
-  if (m[i]==0){NB[[i]]<- as.integer(0)}
+  }
 }
   class(NB)<- 'nb'
 return <- NB

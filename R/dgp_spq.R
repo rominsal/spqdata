@@ -1,5 +1,5 @@
 #' @title A funcion to generate qualitative process with spatial structure
-#' @description This function genera un proceso espacial de datos cualitativos
+#' @description This function genera un proceso de datos cualitativos con estructura espacial
 #' @param x matrix of point coordinate
 #' @param listw A \code{listw} object created for example by
 #'   \code{\link[spdep]{nb2listw}} from \pkg{spatialreg} package; if
@@ -7,7 +7,7 @@
 #'   the same spatial weights as the \code{listw} argument. It can
 #'   also be a spatial weighting matrix of order \emph{(NxN)} instead of
 #'   a \code{listw} object. Default = \code{NULL}.
-#' @param rho nivel de dependencia espacial (un valor entre 0 y 1)
+#' @param rho nivel de dependencia espacial (un valor entre -1 y 1)
 #' @param p un vector indicando el porcentaje de cada clase. Su longitud debe coincidir con el número de clases. Su suma debe ser 1.
 #' @return Devuelve un FACTOR codificado con los primeros números naturales
 #' @details Aquí Antonio escribe una linda historia
@@ -34,11 +34,17 @@ dgp_spq <- function(x = x, p = p, listw = listw, rho = rho) {
 if (class(listw)[1]=="knn"){listw <- spdep::nb2listw(knn2nb(listw))}
 if (class(listw)[1]=="listw"){listw <- spdep::listw2mat(listw)}
 if (class(listw)[1]=="nb"){listw <- spdep::nb2mat(listw, style = "W",zero.policy = TRUE)}
+if (class(listw)[1]=="matrix") {
+  listw <- listw/matrix(rowSums(listw),ncol = dim(listw)[1],nrow =dim(listw)[1])
+  listw[is.na(listw)]<-0
+  }
 
 n <- dim(listw)[1]
 cx <- x[,1]
 cy <- x[,2]
-y <- Matrix::solve(diag(n)-rho*listw)%*%rnorm(n,1)
+listw <- as(listw,"dgCMatrix")
+y <- Matrix::solve(Matrix::Diagonal(n)-rho*listw)%*%rnorm(n,1) # y <- Matrix::solve(diag(n)-rho*listw)%*%rnorm(n,1)
+y <- as.matrix(y)
 Y <- cut(y,quantile(y,c(0,cumsum(p))),include.lowest=TRUE)
 levels(Y) <- as.character(1:length(p))
 return(Y)

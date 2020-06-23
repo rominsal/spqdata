@@ -1,4 +1,4 @@
-creation_nvar_SR_fast = function(listw=listw){
+creation_nvar_SR = function(listw=listw){
   # W puede ser una matrix de distancias para establecer el orden
   # W también puede ser un objeto de la clase nb
 
@@ -77,10 +77,9 @@ creation_nvar_SR_fast = function(listw=listw){
   quito2 <- quito2[quito2>0] #quito2(2:end);
   quito3 <- ((B2[,1]==-99)*(1:dim(B2)[1]))
   quito3 <- quito3[quito3>0] #quito2(2:end);
-  quito23 <- unique(c(quito2,quito3))
-  noquito = c(1:dim(B2)[1])
-  noquito <- noquito[-quito23]
-  for (i in noquito){ # 1:dim(B2)[1]){
+  quito23 <- (c(quito2,quito3))
+
+  for (i in 1:dim(B2)[1]){
     # Identifico los que estan en la misma linea
     B3 <- B2
     dB2 <- dim(B)[2]
@@ -92,16 +91,16 @@ creation_nvar_SR_fast = function(listw=listw){
     # quito3 <- ((B3[,1]==-99)*(1:dim(B3)[1]))
     # quito3 <- quito3[quito3>0] #quito2(2:end);
     # quito23 <- (c(quito2,quito3))
-    quito <- unique(c(quito1,quito23))
+    quito <- (c(quito1,quito23))
     # B3 <- B3[(B3[,1]!=-99),]
     # B3 <- B3[(B3[,2]!=-99),]
     B3 <- B3[-quito,]
 
-    #if (sum(quito23==i)==0){
+    if (sum(quito23==i)==0){
       hh <- rowSums(B3==B2[i,1])+rowSums(B3==B2[i,2])
       nk <- c(sum(hh==0),sum(hh==1),sum(hh==2))
       nn=nn+nk
-    #}
+    }
   }
   return(nn)
   # })

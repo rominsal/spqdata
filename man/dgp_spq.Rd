@@ -18,13 +18,13 @@ the same spatial weights as the \code{listw} argument. It can
 also be a spatial weighting matrix of order \emph{(NxN)} instead of
 a \code{listw} object. Default = \code{NULL}.}
 
-\item{rho}{nivel de dependencia espacial (un valor entre 0 y 1)}
+\item{rho}{nivel de dependencia espacial (un valor entre -1 y 1)}
 }
 \value{
 Devuelve un FACTOR codificado con los primeros números naturales
 }
 \description{
-This function genera un proceso espacial de datos cualitativos
+This function genera un proceso de datos cualitativos con estructura espacial
 }
 \details{
 Aquí Antonio escribe una linda historia
