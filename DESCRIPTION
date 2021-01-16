@@ -1,0 +1,35 @@
+Package: spqdata
+Type: Package
+Title: Testing for spatial structure of qualitative data in cross section
+Version: 0.1.0
+Date: 2020-09-17
+Author: Antonio Paez, Fernando Lopez, Manuel Ruiz, Roman Minguez
+Maintainer: The package maintainer <paezha@gmail.com>
+Description: Testing for spatial structure of qualitative data in cross section
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: 
+    R (>= 3.5), 
+    methods (>= 3.5),
+    stats (>= 3.5),
+    spdep (>= 1.1-3),
+    ggplot2 (>= 3.3.0),
+    sf (>= 0.9-3)
+Imports:
+    broom (>= 0.7.2),
+    dplyr (>= 1.0.2),
+    gt (>= 0.2.2),
+    gtools (>= 3.8.2),
+    igraph (>= 1.2.5),
+    magrittr (>= 1.5),
+    Matrix (>= 1.2-18),
+    purrr (>= 0.3.4),
+    rsample (>= 0.0.8),
+    tidyr (>= 1.1.2)
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+RoxygenNote: 7.1.1
